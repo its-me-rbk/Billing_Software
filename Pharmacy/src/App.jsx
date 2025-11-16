@@ -1,35 +1,83 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+// import React, { useState } from "react";
+// import Home from "./Components/Home";
+// import AdminSidebar from "./Admin/Admin_side_nav";
+// import AdminDashboard from "./Admin/Admin_dashboard";
+
+// const App = () => {
+//   const [page, setPage] = useState("login");
+
+//   return (
+//     <div
+//       className={
+//         page === "login"
+//           ? "min-h-screen flex items-center justify-center"  
+//           : "min-h-screen flex"                               
+//       }
+//     >
+//       {page === "login" && <Home setPage={setPage} />}
+
+//       {page === "admin" && (
+//         <div className="flex w-full">
+//           <AdminSidebar />
+//           <div className="flex-1 bg-gray-100">
+//             <AdminDashboard />
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default App;
+
+
+
+
+
+import React, { useState } from "react";
+import Home from "./Components/Home";
+import AdminSidebar from "./Admin/Admin_side_nav";
+import AdminDashboard from "./Admin/Admin_dashboard";
+import AdminProducts from "./Admin/Admin_Products";
+
+const App = () => {
+  const [page, setPage] = useState("login");
+
+  const renderPage = () => {
+    switch (page) {
+      case "admin_dashboard":
+        return <AdminDashboard />;
+      case "admin_products":
+        return <AdminProducts />;
+      default:
+        return <AdminDashboard />;
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div
+      className={
+        page === "login"
+          ? "min-h-screen flex items-center justify-center"
+          : "min-h-screen flex"
+      }
+    >
+      {/* LOGIN PAGE */}
+      {page === "login" && <Home setPage={setPage} />}
 
-export default App
+      {/* ADMIN PANEL */}
+      {page !== "login" && (
+        <div className="flex w-full">
+          <AdminSidebar setPage={setPage} activePage={page} />
+
+          <div className="flex-1 bg-gray-100 p-4">
+            {renderPage()}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
