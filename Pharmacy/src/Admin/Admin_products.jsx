@@ -1,123 +1,119 @@
 
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiEdit2, FiTrash2, FiDownload, FiPlus } from "react-icons/fi";
-import AddProductForm from "./Admin_Add_product_from";
+import AddProductForm from "./Admin_Add_product_from"; 
+
+const API_BASE = "http://localhost:5000/api/products";
 
 export default function Admin_Products() {
   const [showAddForm, setShowAddForm] = useState(false);
-
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Paracetamol 500mg",
-      category: "Pain Relief",
-      manufacturer: "PharmaCo",
-      batch: "PC-2024-001",
-      expiry: "2025-12-31",
-      price: 100,
-      stock: 450,
-      status: "In Stock",
-    },
-    {
-      id: 2,
-      name: "Amoxicillin 250mg",
-      category: "Antibiotic",
-      manufacturer: "MediLife",
-      batch: "ML-2024-056",
-      expiry: "2025-08-15",
-      price: 200,
-      stock: 15,
-      status: "Low Stock",
-    },
-    {
-      id: 3,
-      name: "Vitamin D3",
-      category: "Supplements",
-      manufacturer: "HealthPlus",
-      batch: "HP-2024-120",
-      expiry: "2025-11-20",
-      price: 150,
-      stock: 280,
-      status: "In Stock",
-    },
-    {
-      id: 4,
-      name: "Aspirin 75mg",
-      category: "Pain Relief",
-      manufacturer: "PharmaCo",
-      batch: "PC-2024-089",
-      expiry: "2025-01-20",
-      price: 80,
-      stock: 120,
-      status: "Expiring Soon",
-    },
-    {
-      id: 5,
-      name: "Ibuprofen 400mg",
-      category: "Pain Relief",
-      manufacturer: "MediLife",
-      batch: "ML-2024-034",
-      expiry: "2026-03-10",
-      price: 150,
-      stock: 0,
-      status: "Out of Stock",
-    },
-  ]);
-
+  const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All Status");
+  const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Fetch all products from backend
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(API_BASE);
+      const data = await res.json();
+     
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Fetch products error:", err);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete product (calls backend DELETE; if backend lacks DELETE route it still removes from UI)
+  const deleteProduct = async (id) => {
+    if (!window.confirm("Delete this product?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setProducts((prev) => prev.filter((p) => p._id !== id));
+      } else {
+        // try optimistic removal even if backend doesn't support DELETE
+        setProducts((prev) => prev.filter((p) => p._id !== id));
+        console.warn("Delete request failed, removed from UI only.");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      setProducts((prev) => prev.filter((p) => p._id !== id));
+    }
+  };
+
+  // Called when AddProductForm successfully creates a product
+  const handleProductAdded = (newProduct) => {
+    setProducts((prev) => [...prev, newProduct]);
+  };
+
+  // Utility: compute status from stock & expiry
+  const getStatus = (p) => {
+    const stock = Number(p.stockQuantity ?? p.stock ?? 0);
+    const expiry = p.expiryDate || p.expiry || null;
+    if (stock <= 0) return "Out of Stock";
+    if (stock <= 20) return "Low Stock"; // threshold
+    if (expiry) {
+      const d = new Date(expiry);
+      const now = new Date();
+      const diffDays = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 30) return "Expiring Soon";
+    }
+    return "In Stock";
+  };
+
+  // Generate unique categories from products
+  const categories = ["All Categories", ...Array.from(new Set(products.map((p) => p.category || "Unspecified")))];
+
+  // Filter products for display
   const filteredProducts = products.filter((p) => {
+    const q = search.trim().toLowerCase();
     const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.batch.toLowerCase().includes(search.toLowerCase()) ||
-      p.manufacturer.toLowerCase().includes(search.toLowerCase());
-
-    const matchesCategory =
-      categoryFilter === "All Categories" || p.category === categoryFilter;
-
-    const matchesStatus =
-      statusFilter === "All Status" || p.status === statusFilter;
-
+      !q ||
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.batchNumber && p.batchNumber.toLowerCase().includes(q)) ||
+      (p.batch && p.batch.toLowerCase().includes(q)) ||
+      (p.manufacturer && p.manufacturer.toLowerCase().includes(q));
+    const matchesCategory = categoryFilter === "All Categories" || (p.category || "Unspecified") === categoryFilter;
+    const status = getStatus(p);
+    const matchesStatus = statusFilter === "All Status" || status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const deleteProduct = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
-  };
+  // Stats
+  const total = products.length;
+  const lowStock = products.filter((p) => getStatus(p) === "Low Stock").length;
+  const outOfStock = products.filter((p) => getStatus(p) === "Out of Stock").length;
+  const expiring = products.filter((p) => getStatus(p) === "Expiring Soon").length;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-2xl font-semibold mb-2">Products & Inventory</h1>
-      <p className="text-gray-600 mb-6">
-        Manage your product catalog and stock levels
-      </p>
+      <p className="text-gray-600 mb-6">Manage your product catalog and stock levels</p>
 
-      {/* SHOW ADD PRODUCT MODAL */}
+      {/* Add product modal */}
       {showAddForm && (
-        <AddProductForm onClose={() => setShowAddForm(false)} />
+        <AddProductForm
+          onClose={() => setShowAddForm(false)}
+          onProductAdded={handleProductAdded}
+        />
       )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card title="Total Products" value={products.length} icon="📦" />
-        <Card
-          title="Low Stock"
-          value={products.filter((p) => p.status === "Low Stock").length}
-          icon="⚠️"
-        />
-        <Card
-          title="Out of Stock"
-          value={products.filter((p) => p.status === "Out of Stock").length}
-          icon="🗑️"
-        />
-        <Card
-          title="Expiring Soon"
-          value={products.filter((p) => p.status === "Expiring Soon").length}
-          icon="⏰"
-        />
+        <Card title="Total Products" value={total} icon="📦" />
+        <Card title="Low Stock" value={lowStock} icon="⚠️" />
+        <Card title="Out of Stock" value={outOfStock} icon="🗑️" />
+        <Card title="Expiring Soon" value={expiring} icon="⏰" />
       </div>
 
       {/* Search + Filters */}
@@ -135,10 +131,9 @@ export default function Admin_Products() {
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
         >
-          <option>All Categories</option>
-          <option>Pain Relief</option>
-          <option>Antibiotic</option>
-          <option>Supplements</option>
+          {categories.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
         </select>
 
         <select
@@ -168,47 +163,59 @@ export default function Admin_Products() {
 
       {/* TABLE */}
       <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b">
-              <Th>Product Name</Th>
-              <Th>Category</Th>
-              <Th>Manufacturer</Th>
-              <Th>Batch No.</Th>
-              <Th>Expiry Date</Th>
-              <Th>Price</Th>
-              <Th>Stock</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredProducts.map((p) => (
-              <tr key={p.id} className="border-b hover:bg-gray-50">
-                <Td>{p.name}</Td>
-                <Td>{p.category}</Td>
-                <Td>{p.manufacturer}</Td>
-                <Td>{p.batch}</Td>
-                <Td>{p.expiry}</Td>
-                <Td>₹{p.price}</Td>
-                <Td>{p.stock}</Td>
-                <Td>
-                  <StatusBadge status={p.status} />
-                </Td>
-                <Td>
-                  <div className="flex gap-3 text-lg">
-                    <FiEdit2 className="cursor-pointer text-blue-600" />
-                    <FiTrash2
-                      className="cursor-pointer text-red-600"
-                      onClick={() => deleteProduct(p.id)}
-                    />
-                  </div>
-                </Td>
+        {loading ? (
+          <div className="p-6 text-center">Loading products...</div>
+        ) : (
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b">
+                <Th>Product Name</Th>
+                <Th>Category</Th>
+                <Th>Manufacturer</Th>
+                <Th>Batch No.</Th>
+                <Th>Expiry Date</Th>
+                <Th>Price</Th>
+                <Th>Quantity</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan="9" className="p-6 text-center text-gray-400">
+                    No products found.
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((p) => (
+                  <tr key={p._id} className="border-b hover:bg-gray-50">
+                    <Td>{p.name}</Td>
+                    <Td>{p.category || "Unspecified"}</Td>
+                    <Td>{p.manufacturer}</Td>
+                    <Td>{p.batchNumber || p.batch || "-"}</Td>
+                    <Td>{p.expiryDate ? new Date(p.expiryDate).toLocaleDateString() : "-"}</Td>
+                    <Td>₹{p.price ?? "-"}</Td>
+                    <Td>{p.stockQuantity ?? p.stock ?? 0}</Td>
+                    <Td>
+                      <StatusBadge status={getStatus(p)} />
+                    </Td>
+                    <Td>
+                      <div className="flex gap-3 text-lg">
+                        <FiEdit2 className="cursor-pointer text-blue-600" />
+                        <FiTrash2
+                          className="cursor-pointer text-red-600"
+                          onClick={() => deleteProduct(p._id)}
+                        />
+                      </div>
+                    </Td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
@@ -234,14 +241,11 @@ const StatusBadge = ({ status }) => {
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-sm ${colors[status]}`}>
+    <span className={`px-3 py-1 rounded-full text-sm ${colors[status] || "bg-gray-100 text-gray-700"}`}>
       {status}
     </span>
   );
 };
 
-const Th = ({ children }) => (
-  <th className="py-3 font-semibold text-gray-600">{children}</th>
-);
-
+const Th = ({ children }) => <th className="py-3 font-semibold text-gray-600">{children}</th>;
 const Td = ({ children }) => <td className="py-3 text-gray-700">{children}</td>;

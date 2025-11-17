@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Home from "./Components/Home";
 import AdminSidebar from "./Admin/Admin_side_nav";
 import AdminDashboard from "./Admin/Admin_dashboard";
-import AdminProducts from "./Admin/Admin_Products";
+import AdminProducts from "./Admin/Admin_products";
 
 const App = () => {
   const [page, setPage] = useState("login");
