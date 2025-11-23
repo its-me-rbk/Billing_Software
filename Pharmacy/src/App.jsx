@@ -1,5 +1,4 @@
 
-
 import React, { useState } from "react";
 
 // Login Page
@@ -9,6 +8,7 @@ import Home from "./Components/Home";
 import AdminSidebar from "./Admin/Admin_side_nav";
 import AdminDashboard from "./Admin/Admin_dashboard";
 import AdminProducts from "./Admin/Admin_products";
+import CreateBill from "./Admin/Admin_Billing_page";   
 
 // Cashier Pages
 import CashierSidebar from "./Cashier/Cashier_nav";
@@ -16,7 +16,7 @@ import CashierDashboard from "./Cashier/Cashier_dashboard";
 
 const App = () => {
   const [page, setPage] = useState("login");
-  const [role, setRole] = useState(""); // Admin OR Cashier
+  const [role, setRole] = useState(""); 
 
   // ---------- PAGE RENDERER ----------
   const renderPage = () => {
@@ -24,8 +24,13 @@ const App = () => {
       switch (page) {
         case "admin_dashboard":
           return <AdminDashboard />;
+
         case "admin_products":
           return <AdminProducts setPage={setPage} />;
+
+        case "admin_billing":                  
+          return <CreateBill />;
+
         default:
           return <AdminDashboard />;
       }
@@ -53,10 +58,7 @@ const App = () => {
     >
       {/* ------------ LOGIN PAGE ------------ */}
       {page === "login" && (
-        <Home
-          setPage={setPage}
-          setRole={setRole}   // FOR ADMIN / CASHIER
-        />
+        <Home setPage={setPage} setRole={setRole} />
       )}
 
       {/* ------------ ADMIN LAYOUT ------------ */}

@@ -1,4 +1,5 @@
 
+
 import React from "react";
 import {
   LayoutGrid,
@@ -14,9 +15,12 @@ const AdminSidebar = ({ setPage, activePage }) => {
   return (
     <div className="h-screen w-64 bg-teal-700 text-white flex flex-col justify-between py-6 px-4">
 
-     
+      {/* LOGO */}
       <div>
-        <div className="flex items-center gap-3 px-2 mb-8 cursor-pointer" onClick={() => setPage("admin_dashboard")}>
+        <div
+          className="flex items-center gap-3 px-2 mb-8 cursor-pointer"
+          onClick={() => setPage("admin_dashboard")}
+        >
           <div className="bg-white p-3 rounded-xl">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -35,10 +39,9 @@ const AdminSidebar = ({ setPage, activePage }) => {
           </div>
         </div>
 
-      
+        {/* NAVIGATION */}
         <nav className="flex flex-col gap-5 mt-6">
 
-       
           <SidebarItem
             title="Dashboard"
             Icon={LayoutGrid}
@@ -46,10 +49,12 @@ const AdminSidebar = ({ setPage, activePage }) => {
             onClick={() => setPage("admin_dashboard")}
           />
 
+          {/* ⭐ UPDATED — Billing Opens the CreateBill Page */}
           <SidebarItem
             title="Billing"
             Icon={ShoppingCart}
-            active={false}
+            active={activePage === "admin_billing"}
+            onClick={() => setPage("admin_billing")}
           />
 
           <SidebarItem
@@ -94,3 +99,8 @@ const SidebarItem = ({ Icon, title, active, onClick }) => {
 };
 
 export default AdminSidebar;
+
+
+
+
+
