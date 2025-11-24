@@ -1,5 +1,6 @@
 
 
+
 import React from "react";
 import {
   LayoutGrid,
@@ -49,7 +50,6 @@ const AdminSidebar = ({ setPage, activePage }) => {
             onClick={() => setPage("admin_dashboard")}
           />
 
-          {/* ⭐ UPDATED — Billing Opens the CreateBill Page */}
           <SidebarItem
             title="Billing"
             Icon={ShoppingCart}
@@ -64,10 +64,34 @@ const AdminSidebar = ({ setPage, activePage }) => {
             onClick={() => setPage("admin_products")}
           />
 
-          <SidebarItem title="Customers" Icon={Users} />
-          <SidebarItem title="Suppliers" Icon={Truck} />
-          <SidebarItem title="Reports" Icon={FileText} />
-          <SidebarItem title="Settings" Icon={Settings} />
+          <SidebarItem
+            title="Customers"
+            Icon={Users}
+            active={activePage === "admin_customers"}
+            onClick={() => setPage("admin_customers")}
+          />
+
+          {/* ⭐ FIXED — SUPPLIERS OPENS AdminSupplier PAGE */}
+          <SidebarItem
+            title="Suppliers"
+            Icon={Truck}
+            active={activePage === "admin_suppliers"}
+            onClick={() => setPage("admin_suppliers")}
+          />
+
+          <SidebarItem
+            title="Reports"
+            Icon={FileText}
+            active={activePage === "admin_reports"}
+            onClick={() => setPage("admin_reports")}
+          />
+
+          <SidebarItem
+            title="Settings"
+            Icon={Settings}
+            active={activePage === "admin_settings"}
+            onClick={() => setPage("admin_settings")}
+          />
 
         </nav>
       </div>
@@ -85,8 +109,7 @@ const SidebarItem = ({ Icon, title, active, onClick }) => {
     <div
       onClick={onClick}
       className={`flex items-center justify-between px-4 py-3 cursor-pointer rounded-xl 
-      ${active ? "bg-white text-teal-700 shadow" : "text-teal-100 hover:text-white"}
-      `}
+      ${active ? "bg-white text-teal-700 shadow" : "text-teal-100 hover:text-white"}`}
     >
       <div className="flex items-center gap-3">
         <Icon className="w-5 h-5" />
@@ -99,8 +122,3 @@ const SidebarItem = ({ Icon, title, active, onClick }) => {
 };
 
 export default AdminSidebar;
-
-
-
-
-
