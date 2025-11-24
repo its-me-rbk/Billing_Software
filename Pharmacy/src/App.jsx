@@ -10,7 +10,8 @@ import AdminDashboard from "./Admin/Admin_dashboard";
 import AdminProducts from "./Admin/Admin_products";
 import CreateBill from "./Admin/Admin_Billing_page";
 import AdminSupplier from "./Admin/Admin_Supplier";
-import AdminReport from "./Admin/Admin_reports";   
+import AdminReport from "./Admin/Admin_reports";
+import AdminCustomers from "./Admin/Admin_customers";  
 
 // Cashier Pages
 import CashierSidebar from "./Cashier/Cashier_nav";
@@ -20,7 +21,7 @@ const App = () => {
   const [page, setPage] = useState("login");
   const [role, setRole] = useState("");
 
-  // ---------- PAGE RENDERER ----------
+  // ---------------- PAGE RENDERER ----------------
   const renderPage = () => {
     if (role === "Admin") {
       switch (page) {
@@ -36,11 +37,14 @@ const App = () => {
         case "admin_suppliers":
           return <AdminSupplier />;
 
-        case "admin_reports":        // ⭐ ADDED REPORTS PAGE
+        case "admin_reports":
           return <AdminReport />;
 
+        case "admin_customers":                         
+          return <AdminCustomers />;
+
         case "admin_settings":
-          return <div>Settings Coming Soon...</div>; // optional placeholder
+          return <div>Settings Coming Soon...</div>;
 
         default:
           return <AdminDashboard />;
@@ -68,24 +72,26 @@ const App = () => {
           : "min-h-screen flex"
       }
     >
-      {/* ------------ LOGIN PAGE ------------ */}
-      {page === "login" && (
-        <Home setPage={setPage} setRole={setRole} />
-      )}
+      {/* ---------------- LOGIN PAGE ---------------- */}
+      {page === "login" && <Home setPage={setPage} setRole={setRole} />}
 
-      {/* ------------ ADMIN LAYOUT ------------ */}
+      {/* ---------------- ADMIN LAYOUT ---------------- */}
       {page !== "login" && role === "Admin" && (
         <div className="flex w-full">
           <AdminSidebar setPage={setPage} activePage={page} />
-          <div className="flex-1 bg-gray-100 p-4">{renderPage()}</div>
+          <div className="flex-1 bg-gray-100 p-4 overflow-y-auto">
+            {renderPage()}
+          </div>
         </div>
       )}
 
-      {/* ------------ CASHIER LAYOUT ------------ */}
+      {/* ---------------- CASHIER LAYOUT ---------------- */}
       {page !== "login" && role === "Cashier" && (
         <div className="flex w-full">
           <CashierSidebar setPage={setPage} activePage={page} />
-          <div className="flex-1 bg-gray-100 p-4">{renderPage()}</div>
+          <div className="flex-1 bg-gray-100 p-4 overflow-y-auto">
+            {renderPage()}
+          </div>
         </div>
       )}
     </div>

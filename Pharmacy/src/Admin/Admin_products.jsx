@@ -1,7 +1,8 @@
 
+
 import React, { useEffect, useState } from "react";
 import { FiEdit2, FiTrash2, FiDownload, FiPlus } from "react-icons/fi";
-import AddProductForm from "./Admin_Add_product_from"; 
+import AddProductForm from "./Admin_Add_product_from";
 
 const API_BASE = "http://localhost:5000/api/products";
 
@@ -17,13 +18,12 @@ export default function Admin_Products() {
     fetchProducts();
   }, []);
 
-  // Fetch all products from backend
+  // Fetch all products
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const res = await fetch(API_BASE);
       const data = await res.json();
-     
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Fetch products error:", err);
@@ -33,7 +33,7 @@ export default function Admin_Products() {
     }
   };
 
-  // Delete product (calls backend DELETE; if backend lacks DELETE route it still removes from UI)
+  // Delete product
   const deleteProduct = async (id) => {
     if (!window.confirm("Delete this product?")) return;
     try {
@@ -41,9 +41,7 @@ export default function Admin_Products() {
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p._id !== id));
       } else {
-        // try optimistic removal even if backend doesn't support DELETE
         setProducts((prev) => prev.filter((p) => p._id !== id));
-        console.warn("Delete request failed, removed from UI only.");
       }
     } catch (err) {
       console.error("Delete error:", err);
@@ -51,30 +49,39 @@ export default function Admin_Products() {
     }
   };
 
-  // Called when AddProductForm successfully creates a product
+  // When product added
   const handleProductAdded = (newProduct) => {
     setProducts((prev) => [...prev, newProduct]);
   };
 
-  // Utility: compute status from stock & expiry
+  // UPDATED STATUS LOGIC
   const getStatus = (p) => {
     const stock = Number(p.stockQuantity ?? p.stock ?? 0);
     const expiry = p.expiryDate || p.expiry || null;
+
     if (stock <= 0) return "Out of Stock";
-    if (stock <= 20) return "Low Stock"; // threshold
+    if (stock < 15) return "Low Stock";
+
     if (expiry) {
-      const d = new Date(expiry);
-      const now = new Date();
-      const diffDays = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+      const expiryDate = new Date(expiry);
+      const today = new Date();
+
+      if (expiryDate < today) return "Expired";
+
+      const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
       if (diffDays <= 30) return "Expiring Soon";
     }
+
     return "In Stock";
   };
 
-  // Generate unique categories from products
-  const categories = ["All Categories", ...Array.from(new Set(products.map((p) => p.category || "Unspecified")))];
+  // Categories
+  const categories = [
+    "All Categories",
+    ...Array.from(new Set(products.map((p) => p.category || "Unspecified"))),
+  ];
 
-  // Filter products for display
+  // Filter
   const filteredProducts = products.filter((p) => {
     const q = search.trim().toLowerCase();
     const matchesSearch =
@@ -83,9 +90,15 @@ export default function Admin_Products() {
       (p.batchNumber && p.batchNumber.toLowerCase().includes(q)) ||
       (p.batch && p.batch.toLowerCase().includes(q)) ||
       (p.manufacturer && p.manufacturer.toLowerCase().includes(q));
-    const matchesCategory = categoryFilter === "All Categories" || (p.category || "Unspecified") === categoryFilter;
+
+    const matchesCategory =
+      categoryFilter === "All Categories" ||
+      (p.category || "Unspecified") === categoryFilter;
+
     const status = getStatus(p);
+
     const matchesStatus = statusFilter === "All Status" || status === statusFilter;
+
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -146,13 +159,13 @@ export default function Admin_Products() {
           <option>Low Stock</option>
           <option>Expiring Soon</option>
           <option>Out of Stock</option>
+          <option>Expired</option>
         </select>
 
         <button className="flex items-center gap-2 bg-white border px-4 py-2 rounded-lg">
           <FiDownload /> Export
         </button>
 
-        {/* ADD PRODUCT BUTTON — Opens Form */}
         <button
           className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg"
           onClick={() => setShowAddForm(true)}
@@ -222,6 +235,7 @@ export default function Admin_Products() {
 }
 
 /* ---------- Small Components ---------- */
+
 const Card = ({ title, value, icon }) => (
   <div className="p-5 bg-white shadow rounded-xl flex items-center gap-4">
     <div className="text-3xl">{icon}</div>
@@ -238,6 +252,7 @@ const StatusBadge = ({ status }) => {
     "Low Stock": "bg-orange-100 text-orange-700",
     "Out of Stock": "bg-red-100 text-red-700",
     "Expiring Soon": "bg-yellow-100 text-yellow-700",
+    "Expired": "bg-red-200 text-red-800",
   };
 
   return (
