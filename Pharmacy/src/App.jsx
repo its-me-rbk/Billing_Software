@@ -1,5 +1,4 @@
 
-
 import React, { useState } from "react";
 
 // Login Page
@@ -10,7 +9,8 @@ import AdminSidebar from "./Admin/Admin_side_nav";
 import AdminDashboard from "./Admin/Admin_dashboard";
 import AdminProducts from "./Admin/Admin_products";
 import CreateBill from "./Admin/Admin_Billing_page";
-import AdminSupplier from "./Admin/Admin_Supplier";   // ✅ NEW PAGE
+import AdminSupplier from "./Admin/Admin_Supplier";
+import AdminReport from "./Admin/Admin_reports";   
 
 // Cashier Pages
 import CashierSidebar from "./Cashier/Cashier_nav";
@@ -33,8 +33,14 @@ const App = () => {
         case "admin_billing":
           return <CreateBill />;
 
-        case "admin_suppliers":               // ✅ ADDED SUPPLIERS PAGE
+        case "admin_suppliers":
           return <AdminSupplier />;
+
+        case "admin_reports":        // ⭐ ADDED REPORTS PAGE
+          return <AdminReport />;
+
+        case "admin_settings":
+          return <div>Settings Coming Soon...</div>; // optional placeholder
 
         default:
           return <AdminDashboard />;
@@ -62,7 +68,6 @@ const App = () => {
           : "min-h-screen flex"
       }
     >
-      
       {/* ------------ LOGIN PAGE ------------ */}
       {page === "login" && (
         <Home setPage={setPage} setRole={setRole} />

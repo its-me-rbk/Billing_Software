@@ -1,6 +1,4 @@
 
-
-
 import React from "react";
 import {
   LayoutGrid,
@@ -71,7 +69,6 @@ const AdminSidebar = ({ setPage, activePage }) => {
             onClick={() => setPage("admin_customers")}
           />
 
-          {/* ⭐ FIXED — SUPPLIERS OPENS AdminSupplier PAGE */}
           <SidebarItem
             title="Suppliers"
             Icon={Truck}
@@ -79,6 +76,7 @@ const AdminSidebar = ({ setPage, activePage }) => {
             onClick={() => setPage("admin_suppliers")}
           />
 
+          {/* ⭐ REPORTS FIXED */}
           <SidebarItem
             title="Reports"
             Icon={FileText}
