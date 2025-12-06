@@ -1,7 +1,282 @@
 
 
+// import React, { useEffect, useState } from "react";
+// import { FiEdit2, FiTrash2, FiDownload, FiPlus } from "react-icons/fi";
+// import AddProductForm from "./Admin_Add_product_from";
+
+// const API_BASE = "http://localhost:5000/api/products";
+
+// export default function Admin_Products() {
+//   const [showAddForm, setShowAddForm] = useState(false);
+//   const [products, setProducts] = useState([]);
+//   const [search, setSearch] = useState("");
+//   const [categoryFilter, setCategoryFilter] = useState("All Categories");
+//   const [statusFilter, setStatusFilter] = useState("All Status");
+//   const [loading, setLoading] = useState(false);
+
+//   useEffect(() => {
+//     fetchProducts();
+//   }, []);
+
+//   // Fetch all products
+//   const fetchProducts = async () => {
+//     setLoading(true);
+//     try {
+//       const res = await fetch(API_BASE);
+//       const data = await res.json();
+//       setProducts(Array.isArray(data) ? data : []);
+//     } catch (err) {
+//       console.error("Fetch products error:", err);
+//       setProducts([]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Delete product
+//   const deleteProduct = async (id) => {
+//     if (!window.confirm("Delete this product?")) return;
+//     try {
+//       const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+//       if (res.ok) {
+//         setProducts((prev) => prev.filter((p) => p._id !== id));
+//       } else {
+//         setProducts((prev) => prev.filter((p) => p._id !== id));
+//       }
+//     } catch (err) {
+//       console.error("Delete error:", err);
+//       setProducts((prev) => prev.filter((p) => p._id !== id));
+//     }
+//   };
+
+//   // When product added
+//   const handleProductAdded = (newProduct) => {
+//     setProducts((prev) => [...prev, newProduct]);
+//   };
+
+//   // UPDATED STATUS LOGIC
+//   const getStatus = (p) => {
+//     const stock = Number(p.stockQuantity ?? p.stock ?? 0);
+//     const expiry = p.expiryDate || p.expiry || null;
+
+//     if (stock <= 0) return "Out of Stock";
+//     if (stock < 15) return "Low Stock";
+
+//     if (expiry) {
+//       const expiryDate = new Date(expiry);
+//       const today = new Date();
+
+//       if (expiryDate < today) return "Expired";
+
+//       const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+//       if (diffDays <= 30) return "Expiring Soon";
+//     }
+
+//     return "In Stock";
+//   };
+
+//   // Categories
+//   const categories = [
+//     "All Categories",
+//     ...Array.from(new Set(products.map((p) => p.category || "Unspecified"))),
+//   ];
+
+//   // Filter
+//   const filteredProducts = products.filter((p) => {
+//     const q = search.trim().toLowerCase();
+//     const matchesSearch =
+//       !q ||
+//       (p.name && p.name.toLowerCase().includes(q)) ||
+//       (p.batchNumber && p.batchNumber.toLowerCase().includes(q)) ||
+//       (p.batch && p.batch.toLowerCase().includes(q)) ||
+//       (p.manufacturer && p.manufacturer.toLowerCase().includes(q));
+
+//     const matchesCategory =
+//       categoryFilter === "All Categories" ||
+//       (p.category || "Unspecified") === categoryFilter;
+
+//     const status = getStatus(p);
+
+//     const matchesStatus = statusFilter === "All Status" || status === statusFilter;
+
+//     return matchesSearch && matchesCategory && matchesStatus;
+//   });
+
+//   // Stats
+//   const total = products.length;
+//   const lowStock = products.filter((p) => getStatus(p) === "Low Stock").length;
+//   const outOfStock = products.filter((p) => getStatus(p) === "Out of Stock").length;
+//   const expiring = products.filter((p) => getStatus(p) === "Expiring Soon").length;
+
+//   return (
+//     <div className="p-6 bg-gray-100 min-h-screen">
+//       <h1 className="text-2xl font-semibold mb-2">Products & Inventory</h1>
+//       <p className="text-gray-600 mb-6">Manage your product catalog and stock levels</p>
+
+//       {/* Add product modal */}
+//       {showAddForm && (
+//         <AddProductForm
+//           onClose={() => setShowAddForm(false)}
+//           onProductAdded={handleProductAdded}
+//         />
+//       )}
+
+//       {/* Summary Cards */}
+//       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+//         <Card title="Total Products" value={total} icon="📦" />
+//         <Card title="Low Stock" value={lowStock} icon="⚠️" />
+//         <Card title="Out of Stock" value={outOfStock} icon="🗑️" />
+//         <Card title="Expiring Soon" value={expiring} icon="⏰" />
+//       </div>
+
+//       {/* Search + Filters */}
+//       <div className="flex flex-col md:flex-row gap-4 items-center mb-6">
+//         <input
+//           type="text"
+//           placeholder="Search by name, batch, or manufacturer..."
+//           className="w-full md:w-1/2 px-4 py-2 border rounded-lg"
+//           value={search}
+//           onChange={(e) => setSearch(e.target.value)}
+//         />
+
+//         <select
+//           className="px-4 py-2 border rounded-lg"
+//           value={categoryFilter}
+//           onChange={(e) => setCategoryFilter(e.target.value)}
+//         >
+//           {categories.map((c) => (
+//             <option key={c}>{c}</option>
+//           ))}
+//         </select>
+
+//         <select
+//           className="px-4 py-2 border rounded-lg"
+//           value={statusFilter}
+//           onChange={(e) => setStatusFilter(e.target.value)}
+//         >
+//           <option>All Status</option>
+//           <option>In Stock</option>
+//           <option>Low Stock</option>
+//           <option>Expiring Soon</option>
+//           <option>Out of Stock</option>
+//           <option>Expired</option>
+//         </select>
+
+//         <button className="flex items-center gap-2 bg-white border px-4 py-2 rounded-lg">
+//           <FiDownload /> Export
+//         </button>
+
+//         <button
+//           className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg"
+//           onClick={() => setShowAddForm(true)}
+//         >
+//           <FiPlus /> Add Product
+//         </button>
+//       </div>
+
+//       {/* TABLE */}
+//       <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
+//         {loading ? (
+//           <div className="p-6 text-center">Loading products...</div>
+//         ) : (
+//           <table className="w-full text-left">
+//             <thead>
+//               <tr className="border-b">
+//                 <Th>Product Name</Th>
+//                 <Th>Category</Th>
+//                 <Th>Manufacturer</Th>
+//                 <Th>Batch No.</Th>
+//                 <Th>Expiry Date</Th>
+//                 <Th>Price</Th>
+//                 <Th>Quantity</Th>
+//                 <Th>Status</Th>
+//                 <Th>Actions</Th>
+//               </tr>
+//             </thead>
+
+//             <tbody>
+//               {filteredProducts.length === 0 ? (
+//                 <tr>
+//                   <td colSpan="9" className="p-6 text-center text-gray-400">
+//                     No products found.
+//                   </td>
+//                 </tr>
+//               ) : (
+//                 filteredProducts.map((p) => (
+//                   <tr key={p._id} className="border-b hover:bg-gray-50">
+//                     <Td>{p.name}</Td>
+//                     <Td>{p.category || "Unspecified"}</Td>
+//                     <Td>{p.manufacturer}</Td>
+//                     <Td>{p.batchNumber || p.batch || "-"}</Td>
+//                     <Td>{p.expiryDate ? new Date(p.expiryDate).toLocaleDateString() : "-"}</Td>
+//                     <Td>₹{p.price ?? "-"}</Td>
+//                     <Td>{p.stockQuantity ?? p.stock ?? 0}</Td>
+//                     <Td>
+//                       <StatusBadge status={getStatus(p)} />
+//                     </Td>
+//                     <Td>
+//                       <div className="flex gap-3 text-lg">
+//                         <FiEdit2 className="cursor-pointer text-blue-600" />
+//                         <FiTrash2
+//                           className="cursor-pointer text-red-600"
+//                           onClick={() => deleteProduct(p._id)}
+//                         />
+//                       </div>
+//                     </Td>
+//                   </tr>
+//                 ))
+//               )}
+//             </tbody>
+//           </table>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* ---------- Small Components ---------- */
+
+// const Card = ({ title, value, icon }) => (
+//   <div className="p-5 bg-white shadow rounded-xl flex items-center gap-4">
+//     <div className="text-3xl">{icon}</div>
+//     <div>
+//       <p className="text-gray-600">{title}</p>
+//       <p className="text-xl font-bold">{value}</p>
+//     </div>
+//   </div>
+// );
+
+// const StatusBadge = ({ status }) => {
+//   const colors = {
+//     "In Stock": "bg-green-100 text-green-700",
+//     "Low Stock": "bg-orange-100 text-orange-700",
+//     "Out of Stock": "bg-red-100 text-red-700",
+//     "Expiring Soon": "bg-yellow-100 text-yellow-700",
+//     "Expired": "bg-red-200 text-red-800",
+//   };
+
+//   return (
+//     <span className={`px-3 py-1 rounded-full text-sm ${colors[status] || "bg-gray-100 text-gray-700"}`}>
+//       {status}
+//     </span>
+//   );
+// };
+
+// const Th = ({ children }) => <th className="py-3 font-semibold text-gray-600">{children}</th>;
+// const Td = ({ children }) => <td className="py-3 text-gray-700">{children}</td>;
+
+
+
+
+
+
+
+
+
+
+// Admin_Products.jsx
 import React, { useEffect, useState } from "react";
-import { FiEdit2, FiTrash2, FiDownload, FiPlus } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiDownload } from "react-icons/fi";
 import AddProductForm from "./Admin_Add_product_from";
 
 const API_BASE = "http://localhost:5000/api/products";
@@ -10,157 +285,99 @@ export default function Admin_Products() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All Categories");
-  const [statusFilter, setStatusFilter] = useState("All Status");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  // Fetch all products
+  // Load products
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const res = await fetch(API_BASE);
       const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
+
+      if (Array.isArray(data)) setProducts(data);
+      else setProducts([]);
+
     } catch (err) {
-      console.error("Fetch products error:", err);
+      console.error("Fetch error:", err);
       setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => { fetchProducts(); }, []);
+
   // Delete product
   const deleteProduct = async (id) => {
     if (!window.confirm("Delete this product?")) return;
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setProducts((prev) => prev.filter((p) => p._id !== id));
-      } else {
-        setProducts((prev) => prev.filter((p) => p._id !== id));
-      }
+      await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      setProducts((prev) => prev.filter((p) => p._id !== id));
     } catch (err) {
       console.error("Delete error:", err);
-      setProducts((prev) => prev.filter((p) => p._id !== id));
     }
   };
 
-  // When product added
-  const handleProductAdded = (newProduct) => {
-    setProducts((prev) => [...prev, newProduct]);
-  };
+  // Product status (based on batches)
+  const getBatchStatus = (batch) => {
+    const qty = batch.quantity || 0;
+    if (qty <= 0) return "Out of Stock";
+    if (qty < 10) return "Low Stock";
 
-  // UPDATED STATUS LOGIC
-  const getStatus = (p) => {
-    const stock = Number(p.stockQuantity ?? p.stock ?? 0);
-    const expiry = p.expiryDate || p.expiry || null;
+    if (batch.expiryDate) {
+      const exp = new Date(batch.expiryDate);
+      const now = new Date();
+      const diff = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
 
-    if (stock <= 0) return "Out of Stock";
-    if (stock < 15) return "Low Stock";
-
-    if (expiry) {
-      const expiryDate = new Date(expiry);
-      const today = new Date();
-
-      if (expiryDate < today) return "Expired";
-
-      const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-      if (diffDays <= 30) return "Expiring Soon";
+      if (exp < now) return "Expired";
+      if (diff <= 30) return "Expiring Soon";
     }
 
     return "In Stock";
   };
 
-  // Categories
-  const categories = [
-    "All Categories",
-    ...Array.from(new Set(products.map((p) => p.category || "Unspecified"))),
-  ];
+  // Filtering logic
+  const filtered = products.filter((p) => {
+    const q = search.toLowerCase();
 
-  // Filter
-  const filteredProducts = products.filter((p) => {
-    const q = search.trim().toLowerCase();
-    const matchesSearch =
-      !q ||
-      (p.name && p.name.toLowerCase().includes(q)) ||
-      (p.batchNumber && p.batchNumber.toLowerCase().includes(q)) ||
-      (p.batch && p.batch.toLowerCase().includes(q)) ||
-      (p.manufacturer && p.manufacturer.toLowerCase().includes(q));
+    const matchProduct =
+      p.name.toLowerCase().includes(q) ||
+      p.category?.toLowerCase().includes(q);
 
-    const matchesCategory =
-      categoryFilter === "All Categories" ||
-      (p.category || "Unspecified") === categoryFilter;
+    const matchBatch =
+      p.batches.some(
+        (b) =>
+          b.batchNumber?.toLowerCase().includes(q) ||
+          b.barcode?.toLowerCase().includes(q)
+      );
 
-    const status = getStatus(p);
-
-    const matchesStatus = statusFilter === "All Status" || status === statusFilter;
-
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchProduct || matchBatch;
   });
-
-  // Stats
-  const total = products.length;
-  const lowStock = products.filter((p) => getStatus(p) === "Low Stock").length;
-  const outOfStock = products.filter((p) => getStatus(p) === "Out of Stock").length;
-  const expiring = products.filter((p) => getStatus(p) === "Expiring Soon").length;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-2xl font-semibold mb-2">Products & Inventory</h1>
-      <p className="text-gray-600 mb-6">Manage your product catalog and stock levels</p>
+      <p className="text-gray-600 mb-6">
+        Manage products • View all batches • Check stock status
+      </p>
 
-      {/* Add product modal */}
+      {/* Add product popup */}
       {showAddForm && (
         <AddProductForm
           onClose={() => setShowAddForm(false)}
-          onProductAdded={handleProductAdded}
+          onProductAdded={fetchProducts}
         />
       )}
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card title="Total Products" value={total} icon="📦" />
-        <Card title="Low Stock" value={lowStock} icon="⚠️" />
-        <Card title="Out of Stock" value={outOfStock} icon="🗑️" />
-        <Card title="Expiring Soon" value={expiring} icon="⏰" />
-      </div>
-
-      {/* Search + Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center mb-6">
+      {/* Search & Buttons */}
+      <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
         <input
           type="text"
-          placeholder="Search by name, batch, or manufacturer..."
+          placeholder="Search by name, batch, barcode..."
           className="w-full md:w-1/2 px-4 py-2 border rounded-lg"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-
-        <select
-          className="px-4 py-2 border rounded-lg"
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          {categories.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
-
-        <select
-          className="px-4 py-2 border rounded-lg"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option>All Status</option>
-          <option>In Stock</option>
-          <option>Low Stock</option>
-          <option>Expiring Soon</option>
-          <option>Out of Stock</option>
-          <option>Expired</option>
-        </select>
 
         <button className="flex items-center gap-2 bg-white border px-4 py-2 rounded-lg">
           <FiDownload /> Export
@@ -177,53 +394,87 @@ export default function Admin_Products() {
       {/* TABLE */}
       <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
         {loading ? (
-          <div className="p-6 text-center">Loading products...</div>
+          <div className="p-6 text-center">Loading...</div>
         ) : (
           <table className="w-full text-left">
             <thead>
               <tr className="border-b">
-                <Th>Product Name</Th>
+                <Th>Product</Th>
                 <Th>Category</Th>
-                <Th>Manufacturer</Th>
-                <Th>Batch No.</Th>
-                <Th>Expiry Date</Th>
-                <Th>Price</Th>
-                <Th>Quantity</Th>
-                <Th>Status</Th>
+                <Th>Total Batches</Th>
+                <Th>Total Stock</Th>
                 <Th>Actions</Th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredProducts.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="p-6 text-center text-gray-400">
+                  <td colSpan="5" className="p-6 text-center text-gray-400">
                     No products found.
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((p) => (
-                  <tr key={p._id} className="border-b hover:bg-gray-50">
-                    <Td>{p.name}</Td>
-                    <Td>{p.category || "Unspecified"}</Td>
-                    <Td>{p.manufacturer}</Td>
-                    <Td>{p.batchNumber || p.batch || "-"}</Td>
-                    <Td>{p.expiryDate ? new Date(p.expiryDate).toLocaleDateString() : "-"}</Td>
-                    <Td>₹{p.price ?? "-"}</Td>
-                    <Td>{p.stockQuantity ?? p.stock ?? 0}</Td>
-                    <Td>
-                      <StatusBadge status={getStatus(p)} />
-                    </Td>
-                    <Td>
-                      <div className="flex gap-3 text-lg">
-                        <FiEdit2 className="cursor-pointer text-blue-600" />
+                filtered.map((p) => (
+                  <React.Fragment key={p._id}>
+                    {/* PRODUCT ROW */}
+                    <tr className="border-b bg-gray-50">
+                      <Td className="font-semibold text-lg">{p.name}</Td>
+                      <Td>{p.category || "Unspecified"}</Td>
+                      <Td>{p.batches.length}</Td>
+
+                      <Td>
+                        {p.batches.reduce(
+                          (sum, b) => sum + (b.quantity || 0),
+                          0
+                        )}
+                      </Td>
+
+                      <Td>
                         <FiTrash2
                           className="cursor-pointer text-red-600"
                           onClick={() => deleteProduct(p._id)}
                         />
-                      </div>
-                    </Td>
-                  </tr>
+                      </Td>
+                    </tr>
+
+                    {/* BATCH TABLE */}
+                    <tr>
+                      <td colSpan="5" className="p-3">
+                        <table className="w-full border rounded-lg overflow-hidden bg-white">
+                          <thead className="bg-gray-200">
+                            <tr>
+                              <Th>Batch</Th>
+                              <Th>Expiry</Th>
+                              <Th>Barcode</Th>
+                              <Th>Price</Th>
+                              <Th>Quantity</Th>
+                              <Th>Status</Th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {p.batches.map((b, i) => (
+                              <tr key={i} className="border-b">
+                                <Td>{b.batchNumber}</Td>
+                                <Td>
+                                  {b.expiryDate
+                                    ? new Date(b.expiryDate).toLocaleDateString()
+                                    : "-"}
+                                </Td>
+                                <Td>{b.barcode || "-"}</Td>
+                                <Td>₹{b.price}</Td>
+                                <Td>{b.quantity}</Td>
+                                <Td>
+                                  <StatusBadge status={getBatchStatus(b)} />
+                                </Td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </React.Fragment>
                 ))
               )}
             </tbody>
@@ -234,17 +485,7 @@ export default function Admin_Products() {
   );
 }
 
-/* ---------- Small Components ---------- */
-
-const Card = ({ title, value, icon }) => (
-  <div className="p-5 bg-white shadow rounded-xl flex items-center gap-4">
-    <div className="text-3xl">{icon}</div>
-    <div>
-      <p className="text-gray-600">{title}</p>
-      <p className="text-xl font-bold">{value}</p>
-    </div>
-  </div>
-);
+/* ----------------- Small Components ----------------- */
 
 const StatusBadge = ({ status }) => {
   const colors = {
@@ -252,15 +493,22 @@ const StatusBadge = ({ status }) => {
     "Low Stock": "bg-orange-100 text-orange-700",
     "Out of Stock": "bg-red-100 text-red-700",
     "Expiring Soon": "bg-yellow-100 text-yellow-700",
-    "Expired": "bg-red-200 text-red-800",
+    Expired: "bg-red-200 text-red-800",
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-sm ${colors[status] || "bg-gray-100 text-gray-700"}`}>
+    <span
+      className={`px-3 py-1 rounded-full text-sm ${colors[status] || "bg-gray-100 text-gray-700"}`}
+    >
       {status}
     </span>
   );
 };
 
-const Th = ({ children }) => <th className="py-3 font-semibold text-gray-600">{children}</th>;
-const Td = ({ children }) => <td className="py-3 text-gray-700">{children}</td>;
+const Th = ({ children }) => (
+  <th className="py-3 px-2 font-semibold text-gray-700">{children}</th>
+);
+
+const Td = ({ children, className }) => (
+  <td className={`py-3 px-2 text-gray-800 ${className}`}>{children}</td>
+);
