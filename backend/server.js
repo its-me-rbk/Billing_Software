@@ -17,15 +17,16 @@ connectDB();
 // ROUTES
 app.use("/api/products", require("./routes/productRoutes"));
 app.use("/api/bills", require("./routes/billRoutes"));
-app.use("/api/customers", require("./routes/Customer")); 
+app.use("/api/customers", require("./routes/Customer"));
+app.use("/api/suppliers", require("./routes/supplierRoutes")); 
 
-// Root Test Route (Optional but recommended)
+// Root Test Route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
