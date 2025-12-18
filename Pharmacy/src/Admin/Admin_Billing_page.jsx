@@ -1,6 +1,7 @@
 
-// Admin_Billing_Page.jsx
+
 import React, { useEffect, useState } from "react";
+import html2pdf from "html2pdf.js"; 
 
 const API_PRODUCTS = "http://localhost:5000/api/products";
 const API_BILLS = "http://localhost:5000/api/bills";
@@ -20,7 +21,7 @@ export default function Admin_Billing_Page() {
   const [productSearch, setProductSearch] = useState("");
   const [bills, setBills] = useState([]);
 
-  // ---------------------- FETCH PRODUCTS ----------------------
+  
   useEffect(() => {
     fetchProducts();
     fetchBills();
@@ -67,12 +68,14 @@ export default function Admin_Billing_Page() {
   const addItem = () => {
     const product = products.find((p) => p.name === selectedProduct);
     const batch = batches.find((b) => b.batchNumber === selectedBatch);
+
     if (!product || !batch) return alert("Select valid product and batch");
     if (qty > batch.quantity) return alert("Not enough stock!");
 
     const exists = items.find(
       (i) => i._id === product._id && i.batchNumber === batch.batchNumber
     );
+
     if (exists) {
       setItems(
         items.map((i) =>
@@ -93,6 +96,7 @@ export default function Admin_Billing_Page() {
         },
       ]);
     }
+
     setQty("");
     setSelectedBatch("");
     setProductSearch("");
@@ -105,7 +109,8 @@ export default function Admin_Billing_Page() {
       (i) => i._id === id && i.batchNumber === batchNumber
     );
     if (!productBatch) return;
-    if (newQty < 1 || newQty > batches.find((b) => b.batchNumber === batchNumber)?.quantity) return;
+    if (newQty < 1 || newQty > batches.find((b) => b.batchNumber === batchNumber)?.quantity)
+      return;
 
     setItems(
       items.map((i) =>
@@ -176,11 +181,49 @@ export default function Admin_Billing_Page() {
     }
   };
 
+ 
+  const printBill = (billId) => {
+    const content = document.getElementById(`print-${billId}`);
+    const win = window.open("", "", "width=800,height=600");
+    win.document.write(`
+      <html>
+        <head>
+          <title>Invoice</title>
+          <style>
+            body { font-family: Arial; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 6px; }
+          </style>
+        </head>
+        <body>
+          ${content.innerHTML}
+        </body>
+      </html>
+    `);
+    win.document.close();
+    win.print();
+    win.close();
+  };
+
+
+  const downloadBill = (billId, invoice) => {
+    const element = document.getElementById(`print-${billId}`);
+    html2pdf()
+      .from(element)
+      .set({
+        filename: `${invoice}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4" },
+      })
+      .save();
+  };
+  
+
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 flex flex-col gap-8">
-      {/* ---------------------- MAIN SECTION ---------------------- */}
+     
       <div className="flex flex-col md:flex-row gap-6">
-        {/* ---------------------- LEFT SIDE ---------------------- */}
+       
         <div className="md:w-3/4 space-y-6">
           <h1 className="text-3xl font-bold">Create New Bill</h1>
 
@@ -388,9 +431,20 @@ export default function Admin_Billing_Page() {
               >
                 <div className="flex justify-between items-center">
                   <p className="font-semibold text-lg">{b.invoice}</p>
-                  <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
-                    Paid
-                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => printBill(b._id)}
+                      className="px-3 py-1 bg-gray-700 text-white rounded"
+                    >
+                      Print
+                    </button>
+                    <button
+                      onClick={() => downloadBill(b._id, b.invoice)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded"
+                    >
+                      Download
+                    </button>
+                  </div>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>{b.customerName || "No Name"}</span>
@@ -413,6 +467,35 @@ export default function Admin_Billing_Page() {
                 <div className="flex justify-end font-bold text-lg mt-2">
                   <span>Total: ₹{b.total.toFixed(2)}</span>
                 </div>
+
+                {/* Hidden div for print/download */}
+                <div id={`print-${b._id}`} style={{ display: "none" }}>
+                  <h2>Invoice: {b.invoice}</h2>
+                  <p>Customer: {b.customerName}</p>
+                  <p>Payment: {b.paymentMethod}</p>
+                  <hr />
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {b.items.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{item.name}</td>
+                          <td>{item.qty}</td>
+                          <td>₹{item.price}</td>
+                          <td>₹{(item.price * item.qty).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <h3>Total: ₹{b.total.toFixed(2)}</h3>
+                </div>
               </div>
             ))}
           </div>
@@ -421,3 +504,5 @@ export default function Admin_Billing_Page() {
     </div>
   );
 }
+
+
