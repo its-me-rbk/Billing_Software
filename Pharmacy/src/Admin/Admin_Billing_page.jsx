@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import html2pdf from "html2pdf.js"; 
+import logo from '../assets/logo_c.png'
 
 const API_PRODUCTS = "http://localhost:5000/api/products";
 const API_BILLS = "http://localhost:5000/api/bills";
@@ -21,11 +22,26 @@ export default function Admin_Billing_Page() {
   const [productSearch, setProductSearch] = useState("");
   const [bills, setBills] = useState([]);
 
+  const [logoSrc, setLogoSrc] = useState('');
+
   
   useEffect(() => {
     fetchProducts();
     fetchBills();
   }, []);
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      setLogoSrc(canvas.toDataURL('image/png'));
+    };
+    img.src = logo;
+  })
 
   const fetchProducts = async () => {
     try {
@@ -218,236 +234,423 @@ const printBill = (billId) => {
 
   const win = window.open("", "", "width=900,height=1000");
 
-  win.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-<title>Invoice</title>
+win.document.write(`
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vendharaa Invoice</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
 
-<style>
-@page { size: A4; margin: 12mm; }
-* { box-sizing: border-box; }
+      body {
+        background: #f5f5f5;
+        padding: 20px;
+      }
 
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  font-size: 12px;
-}
+      .invoice-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 30px 40px;
+      }
 
-.invoice {
-  page-break-inside: avoid;
-}
+      .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+      }
 
-/* HEADER */
-.header {
-  display: flex;
-  justify-content: space-between;
-}
+      .invoice-title {
+        font-size: 26px;
+        font-weight: 600;
+        text-transform: lowercase;
+      }
 
-.header h1 {
-  font-size: 24px;
-  margin-bottom: 6px;
-}
+      .invoice-meta {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #555;
+        line-height: 1.5;
+      }
 
-/* BOXES */
-.box-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
-}
+      .logo {
+        text-align: right;
+      }
 
-.box {
-  background: #eaeaea;
-  padding: 10px;
-  border-radius: 5px;
-}
+      .logo span {
+        display: block;
+        font-size: 26px;
+        font-weight: 700;
+        color: #2d7fd0;
+      }
 
-.box h4 {
-  margin-bottom: 6px;
-  font-size: 13px;
-}
+      .logo small {
+        font-size: 14px;
+        color: #4a4a4a;
+      }
 
-.box p {
-  margin: 2px 0;
-}
+      .top-boxes {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 15px;
+      }
 
-/* TABLE */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
+      .card {
+        flex: 1;
+        background: #f5f5f5;
+        padding: 18px 20px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
 
-thead {
-  background: #2f2f2f;
-  color: #fff;
-}
+      .card-title {
+        font-weight: 600;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
 
-th, td {
-  padding: 6px;
-  border: 1px solid #ccc;
-  font-size: 11px;
-}
+      .label {
+        font-weight: 600;
+        margin-top: 4px;
+      }
 
-tbody {
-  background: #f2f2f2;
-}
+      .sub-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin: 10px 2px 18px;
+        color: #777;
+      }
 
-tr {
-  page-break-inside: avoid;
-}
+      .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
 
-/* BANK + TOTAL */
-.bottom {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 10px;
-  margin-top: 10px;
-}
+      .items-table thead {
+        background: #333333;
+        color: #ffffff;
+      }
 
-.upi {
-  width: 100px;
-  height: 100px;
-  background: #222;
-  color: #fff;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 6px;
-}
+      .items-table th,
+      .items-table td {
+        padding: 10px 8px;
+      }
 
-.total {
-  text-align: right;
-}
+      .items-table th {
+        font-weight: 500;
+        text-align: left;
+      }
 
-.total h2 {
-  margin: 6px 0;
-  font-size: 18px;
-}
+      .items-table tbody td {
+        border-bottom: 1px solid #e0e0e0;
+        height: 40px;
+      }
 
-/* TERMS */
-.terms {
-  margin-top: 10px;
-}
+      /* Bottom section: use grid */
+      .bottom-section {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr;
+        gap: 40px;
+        margin-top: 40px;
+        align-items: flex-start;
+      }
 
-.terms li {
-  font-size: 11px;
-}
+      .bank-details {
+        font-size: 13px;
+        display: grid;
+        grid-template-columns: 1fr 120px; /* left text, right QR */
+        column-gap: 20px;
+        align-items: start;
+      }
 
-/* FOOTER */
-.footer {
-  font-size: 10px;
-  margin-top: 6px;
-}
+      .bank-left {
+        /* left column with text */
+      }
 
-.invoice, table, tr, td {
-  page-break-inside: avoid !important;
-}
-</style>
-</head>
+      .bank-details h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
 
-<body>
-<div class="invoice">
+      .bank-details .label {
+        margin-top: 6px;
+      }
 
-<!-- HEADER -->
-<div class="header">
-  <div>
-    <h1>invoice</h1>
-    <div>invoice#</div>
-    <div>invoice Date</div>
-    <div>Due Date</div>
-  </div>
-  <img src="https://i.ibb.co/YXz9xDJ/logo.png" height="55"/>
-</div>
+      .upi-qr-wrapper {
+        justify-self: end;      /* push QR to right side of its grid cell */
+        align-self: start;      /* align with top of bank details */
+        text-align: center;
+        font-size: 12px;
+        color: #777;
+      }
 
-<!-- BILL BOX -->
-<div class="box-row">
-  <div class="box">
-    <h4>Billed by</h4>
-    <p>Name</p>
-    <p>Address</p>
-    <p>DL NO</p>
-    <p>GSTIN</p>
-    <p>Contact</p>
-    <p>Email</p>
-  </div>
+      .upi-caption {
+        margin-bottom: 6px;
+      }
 
-  <div class="box">
-    <h4>Billed To</h4>
-    <p>Name</p>
-    <p>Address</p>
-    <p>GSTIN</p>
-    <p>Contact</p>
-    <p>Email</p>
-  </div>
-</div>
+      .square-box {
+        width: 110px;
+        height: 110px;
+        background: #222;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        text-align: center;
+        border-radius: 4px;
+      }
 
-<!-- ITEMS TABLE -->
-<table>
-<thead>
-<tr>
-  <th>Item</th>
-  <th>HSN</th>
-  <th>Qty</th>
-  <th>GST</th>
-  <th>Taxable</th>
-  <th>SGST</th>
-  <th>CGST</th>
-  <th>Amount</th>
-</tr>
-</thead>
-<tbody>
-${content.innerHTML}
-</tbody>
-</table>
+      .terms {
+        margin-top: 25px;
+        font-size: 12px;
+        grid-column: 1 / -1; /* span both columns under bank + QR */
+      }
 
-<!-- BANK + TOTAL -->
-<div class="bottom">
-  <div>
-    <strong>Bank & Payment Details</strong>
-    <div>Account Holder</div>
-    <div>Account No</div>
-    <div>IFSC</div>
-    <div>Bank</div>
-    <div class="upi">UPI QR</div>
-  </div>
+      .terms .label {
+        margin-bottom: 6px;
+      }
 
-  <div class="total">
-    <div>Sub Total</div>
-    <div>Discount (10%)</div>
-    <div>Taxable Amount</div>
-    <div>CGST</div>
-    <div>SGST</div>
-    <h2>₹${totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</h2>
-    <div>${numberToWords(totalAmount)}</div>
-  </div>
-</div>
+      .amount-summary {
+        font-size: 13px;
+      }
 
-<!-- TERMS -->
-<div class="terms">
-  <strong>Terms & Conditions</strong>
-  <ol>
-    <li></li>
-    <li></li>
-  </ol>
-</div>
+      .amount-summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
 
-<!-- FOOTER -->
-<div class="footer">
-For enquiries: Vendharaapharmaceuticals@gmail.com | +91 94429 59826
-</div>
+      .amount-summary-row.total {
+        font-size: 20px;
+        font-weight: 700;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid #e0e0e0;
+      }
 
-</div>
-</body>
-</html>
+      .amount-summary-row.total span:last-child {
+        font-size: 22px;
+      }
+
+      .amount-summary h3 {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+
+      .invoice-words {
+        margin-top: 14px;
+        font-size: 11px;
+        color: #777;
+      }
+
+      .footer {
+        margin-top: 30px;
+        font-size: 11px;
+        color: #777;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .qr-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+      }
+
+      @media print {
+        body {
+          background: #ffffff;
+          padding: 0;
+        }
+        .invoice-wrapper {
+          box-shadow: none;
+          border: none;
+          margin: 0;
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="invoice-wrapper">
+      <!-- Header -->
+      <div class="invoice-header">
+        <div>
+          <div class="invoice-title">Invoice</div>
+          <div class="invoice-meta">
+            Invoice #<br />
+            Invoice Date:<br />
+            Due Date:
+          </div>
+        </div>
+        <div class="logo">
+          <br/>
+          ${logoSrc ? `<img src="${logoSrc}" style="max-height: 70px;" alt="Vendharaa Logo">` : ''}
+        </div>
+      </div>
+
+      <!-- Billed by / Billed to -->
+      <div class="top-boxes">
+        <div class="card">
+          <div class="card-title">Billed by</div>
+          <div class="label">Name</div>
+          Address<br />
+          <div class="label">DL NO</div>
+          <div class="label">GSTIN</div>
+          <div class="label">Contact No</div>
+          <div class="label">Email Id</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Billed To</div>
+          <div class="label">Name</div>
+          Address<br />
+          <div class="label">GSTIN</div>
+          <div class="label">Contact No</div>
+          <div class="label">Email Id</div>
+        </div>
+      </div>
+
+      <div class="sub-header">
+        <span>Place of Supply Dharmapuri</span>
+        <span>Country of supply India</span>
+      </div>
+
+      <!-- Items table -->
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>item / item discription</th>
+            <th>HSN</th>
+            <th>QTY</th>
+            <th>GST</th>
+            <th>Taxable Amount</th>
+            <th>SGST</th>
+            <th>CGST</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+              <td>Paracetamol 500mg Strip (10 tablets)</td>
+              <td>30045000</td>
+              <td>5</td>
+              <td>12%</td>
+              <td>₹1,250.00</td>
+              <td>₹75.00</td>
+              <td>₹75.00</td>
+              <td>₹1,400.00</td>
+          </tr>
+          <tr>
+              <td>Amoxicillin 250mg Bottle (60 ml)</td>
+              <td>30042000</td>
+              <td>3</td>
+              <td>12%</td>
+              <td>₹900.00</td>
+              <td>₹54.00</td>
+              <td>₹54.00</td>
+              <td>₹1,008.00</td>
+          </tr>
+          </tbody>
+      </table>
+
+      <!-- Bottom section with grid -->
+      <div class="bottom-section">
+        <!-- Bank & payment details + UPI QR -->
+        <div class="bank-details">
+          <div class="bank-left">
+            <h3>Bank &amp; Payment Details</h3>
+            <div class="label">Account Holder Name</div>
+            <div class="label">Account Number</div>
+            <div class="label">IFSC</div>
+            <div class="label">Account Type</div>
+            <div class="label">Bank</div>
+            <div class="label">UPI</div>
+          </div>
+
+          <div class="upi-qr-wrapper">
+            <div class="upi-caption">UPI - Scan To Pay</div>
+            <div class="square-box">
+              <!-- Replace with your QR image -->
+              Static UPI Scanner<br />image
+            </div>
+          </div>
+
+          <div class="terms">
+            <div class="label">Terms and Conditions</div>
+            1.<br />
+            2.
+          </div>
+        </div>
+
+        <!-- Amount summary -->
+        <div class="amount-summary">
+          <h3>Summary</h3>
+          <div class="amount-summary-row">
+            <span>Sub Total</span>
+            <span>₹${totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div class="amount-summary-row">
+            <span>Discount(10%)</span>
+            <span>₹0.00</span>
+          </div>
+          <div class="amount-summary-row">
+            <span>Taxable Amount</span>
+            <span>₹0.00</span>
+          </div>
+          <div class="amount-summary-row">
+            <span>CGST</span>
+            <span>₹0.00</span>
+          </div>
+          <div class="amount-summary-row">
+            <span>SGST</span>
+            <span>₹0.00</span>
+          </div>
+
+          <div class="amount-summary-row total">
+            <span>Total</span>
+            <span>₹0.00</span>
+          </div>
+
+          <div class="invoice-words">
+            invoice Total (in Words)<br />
+            ${numberToWords(totalAmount)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer with QR for detailed invoice -->
+      <div class="footer">
+        <div>
+          For any enquiries, email us on VendharaaPharmaceuticals@gmail.com<br />
+          +91 94429 59826
+        </div>
+        <div class="qr-box">
+          <span>Scan To View<br />Detailed Invoice</span>
+          <div class="square-box">QR Image</div>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
   `);
 
   win.document.close();
   win.focus();
-  win.print();
-  win.close();
+  // win.print();
+  // win.close();
 };
 
  
