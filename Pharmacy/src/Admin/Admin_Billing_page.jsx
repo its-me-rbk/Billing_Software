@@ -766,10 +766,6 @@ win.document.write(`
   
 };
 
- 
-
-
-
   const downloadBill = (billId, invoice) => {
   const bill = bills.find(b => b._id === billId);
   if (!bill) return;
@@ -1236,8 +1232,6 @@ win.document.write(`
       document.body.removeChild(container);
     });
 };
-
-  
 
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 flex flex-col gap-8">
