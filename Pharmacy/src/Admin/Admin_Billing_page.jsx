@@ -759,8 +759,8 @@ win.document.write(`
   // Delay for image rendering
   setTimeout(() => {
     requestAnimationFrame(() => {
-      // win.print();
-      // win.close();
+      win.print();
+      win.close();
     });
   }, 100);
   
