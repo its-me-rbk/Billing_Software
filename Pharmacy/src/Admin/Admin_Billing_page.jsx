@@ -474,6 +474,7 @@ win.document.write(`
         body {
           background: #ffffff;
           padding: 0;
+          -webkit-print-color-adjust: exact !important;
         }
         .invoice-wrapper {
           box-shadow: none;
@@ -649,8 +650,15 @@ win.document.write(`
 
   win.document.close();
   win.focus();
-  win.print();
-  win.close();
+
+  // Delay for image rendering
+  setTimeout(() => {
+    requestAnimationFrame(() => {
+      win.print();
+      win.close()
+    });
+  }, 100);
+  
 };
 
  
