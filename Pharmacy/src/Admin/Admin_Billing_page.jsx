@@ -106,9 +106,13 @@ export default function Admin_Billing_Page() {
         {
           _id: product._id,
           name: product.name,
+          gst: batch.gst,
           batchNumber: batch.batchNumber,
           price: batch.price,
+          cgst: batch.price*Number(qty)*(batch.gst/100)/2,
+          sgst: batch.price*Number(qty)*(batch.gst/100)/2,
           qty: Number(qty),
+          total: (batch.price*((1+batch.gst/100)))*Number(qty),
         },
       ]);
     }
@@ -142,7 +146,7 @@ export default function Admin_Billing_Page() {
 
   // ---------------------- BILL CALCULATIONS ----------------------
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const gst = subtotal * 0.18;
+  const gst = items.reduce((sum,i)=> sum + i.cgst + i.sgst, 0);
   const total = subtotal - (subtotal * discount) / 100 + gst;
 
   // ---------------------- COMPLETE PAYMENT ----------------------
@@ -224,14 +228,14 @@ const getBillPrintData = (bill) => {
   // Calculate accurate totals from items
   const itemsWithTaxes = bill.items.map(item => {
     const itemSubtotal = item.price * item.qty;
-    const gstRate = 0.18; // 18% GST as per your code
-    const cgst = itemSubtotal * (gstRate / 2); // 9%
-    const sgst = itemSubtotal * (gstRate / 2); // 9%
+    const cgst = itemSubtotal * (item.gst/2)
+    const sgst = itemSubtotal * (item.gst/2)
+    const gst = item.gst
     
     return {
       ...item,
       subtotal: itemSubtotal,
-      gstRate: `${(gstRate * 100).toFixed(0)}%`,
+      gst: gst,
       cgst: cgst.toFixed(2),
       sgst: sgst.toFixed(2),
       total: (itemSubtotal + cgst + sgst).toFixed(2)
@@ -1350,6 +1354,9 @@ win.document.write(`
                       <th className="p-2 border">Batch</th>
                       <th className="p-2 border">Qty</th>
                       <th className="p-2 border">Price</th>
+                      <th className="p-2 border">GST</th>
+                      <th className="p-2 border">CGST</th>
+                      <th className="p-2 border">SGST</th>
                       <th className="p-2 border">Total</th>
                       <th className="p-2 border">Remove</th>
                     </tr>
@@ -1371,7 +1378,10 @@ win.document.write(`
                           />
                         </td>
                         <td className="p-2 border">{i.price}</td>
-                        <td className="p-2 border">{(i.qty * i.price).toFixed(2)}</td>
+                        <td className="p-2 border">{i.gst}</td>
+                        <td className="p-2 border">{i.cgst}</td>
+                        <td className="p-2 border">{i.sgst}</td>
+                        <td className="p-2 border">{(i.total).toFixed(2)}</td>
                         <td className="p-2 border">
                           <button
                             onClick={() => removeItem(i._id, i.batchNumber)}
@@ -1396,7 +1406,7 @@ win.document.write(`
             <span>Subtotal</span>
             <span>₹{subtotal.toFixed(2)}</span>
           </div>
-          <div>
+          {/* <div>
             <label>Discount (%)</label>
             <input
               type="number"
@@ -1404,7 +1414,7 @@ win.document.write(`
               value={discount}
               onChange={(e) => setDiscount(Number(e.target.value))}
             />
-          </div>
+          </div> */}
           <div className="flex justify-between">
             <span>GST (18%)</span>
             <span>₹{gst.toFixed(2)}</span>
@@ -1492,14 +1502,14 @@ win.document.write(`
                                 <div className="text-xs text-gray-500 font-normal">#{item.batchNumber}</div>
                               )}
                             </td>
-                            <td className="p-1.5 text-center text-xs">3004XXXX</td> {/*Need to be changes*/}
+                            <td className="p-1.5 text-center text-xs">3004XXXX</td>{/*Need to be changes*/}
                             <td className="p-1.5 text-center text-xs">₹{item.price.toFixed(0)}</td>
                             <td className="p-1.5 text-center text-xs">{item.qty}</td>
-                            <td className="p-1.5 text-center text-xs">18%</td>  {/*Need to be changes*/}
-                            <td className="p-1.5 text-center text-xs">₹{(item.price * item.qty).toFixed(2)}</td>
-                            <td className="p-1.5 text-center text-xs">₹{((item.price * item.qty)*0.09).toFixed(2)}</td>
-                            <td className="p-1.5 text-center text-xs">₹{((item.price * item.qty)*0.09).toFixed(2)}</td>
-                            <td className="p-1.5 text-right font-medium text-xs">₹{((item.price * item.qty)*1.18).toFixed(2)}</td>
+                            <td className="p-1.5 text-center text-xs">{item.gst}%</td>
+                            <td className="p-1.5 text-center text-xs">₹{(item.price*item.qty).toFixed(2)}</td>
+                            <td className="p-1.5 text-center text-xs">₹{((item.price*item.qty)*((item.gst)/2)).toFixed(2)}</td>
+                            <td className="p-1.5 text-center text-xs">₹{((item.price*item.qty)*((item.gst)/2)).toFixed(2)}</td>
+                            <td className="p-1.5 text-right font-medium text-xs">₹{((item.price*((1+item.gst/100)))*item.qty).toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>
