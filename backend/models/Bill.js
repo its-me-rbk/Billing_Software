@@ -4,7 +4,9 @@ const mongoose = require("mongoose");
 const BillSchema = new mongoose.Schema({
   invoice: { type: String, required: true, unique: true },
   customerName: { type: String, default: "No Name" },
+  customerAddress: { type: String, default: "" },
   customerPhone: { type: String, default: "" },
+  customerEmail: { type: String, default: "" },
 
   items: [
     {
@@ -13,6 +15,11 @@ const BillSchema = new mongoose.Schema({
       batchNumber: String,  // REQUIRED for batch deduction
       price: Number,
       qty: Number,
+      gst: Number,
+      taxableAmount: Number,
+      sgst: Number,
+      cgst: Number,
+      hsn: String,
     }
   ],
 

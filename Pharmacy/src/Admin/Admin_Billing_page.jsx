@@ -169,7 +169,9 @@ export default function Admin_Billing_Page() {
     const payload = {
       invoice: invoiceNo,
       customerName: customer.name || "No Name",
+      customerAddress: customer.address,
       customerPhone: customer.phone,
+      customerEmail: customer.email,
       items,
       subtotal,
       discount,
@@ -188,7 +190,7 @@ export default function Admin_Billing_Page() {
     if (res.ok) {
       alert("Bill created successfully!");
       setItems([]);
-      setCustomer({ name: "", phone: "" });
+      setCustomer({ name: "", address: "", phone: "" , email: ""});
       setDiscount(0);
       setPayment("Cash");
       setSelectedProduct("");
@@ -269,9 +271,8 @@ const getBillPrintData = (bill) => {
     customer: {
       name: bill.customerName || "Walk-in Customer",
       phone: bill.customerPhone || "Not Available",
-      gstin: bill.gstin || "Not Available", // Add if available
-      address: bill.address || "Address Not Available", // Add if available
-      email: bill.email || "Not Available" // Add if available
+      address: bill.customerAddress || "Address Not Available", // Add if available
+      email: bill.customerEmail || "Not Available" // Add if available
     },
 
     // Items with tax breakdown
@@ -633,7 +634,6 @@ win.document.write(`
           <div class="card-title">Billed To</div>
           <div class="label">${printData.customer.name}</div>
           ${printData.customer.address}<br />
-          <div class="label">GSTIN: <span>${printData.customer.gstin}</span></div>
           <div class="label">Contact No: <span>${printData.customer.phone}</span></div>
           <div class="label">Email Id: <span>${printData.customer.email}<span/></div>
         </div>
@@ -666,10 +666,10 @@ win.document.write(`
               <td>3004XXXX</td> <!-- Update with actual HSN -->
               <td>₹${parseFloat(item.price).toLocaleString('en-IN')}</td>
               <td>${item.qty}</td>
-              <td>${item.gstRate}</td>
+              <td>${item.gst}%</td>
               <td>₹${parseFloat(item.subtotal).toLocaleString('en-IN')}</td>
-              <td>₹${item.sgst}</td>
-              <td>₹${item.cgst}</td>
+              <td>₹${(item.sgst)/100}</td>
+              <td>₹${(item.cgst)/100}</td>
               <td>₹${item.total}</td>
             </tr>
           `).join('')}
@@ -809,14 +809,14 @@ win.document.write(`
 
       body {
         background: #f5f5f5;
-        padding: 8px !important;
+        padding: 20px;
       }
 
       .invoice-wrapper {
         max-width: 900px;
         margin: 0 auto;
         background: #ffffff;
-        padding: 25px 35px !important;
+        padding: 30px 40px;
       }
 
       .invoice-header {
@@ -1080,7 +1080,6 @@ win.document.write(`
           <div class="card-title">Billed To</div>
           <div class="label">${printData.customer.name}</div>
           ${printData.customer.address}<br />
-          <div class="label">GSTIN: <span>${printData.customer.gstin}</span></div>
           <div class="label">Contact No: <span>${printData.customer.phone}</span></div>
           <div class="label">Email Id: <span>${printData.customer.email}<span/></div>
         </div>
@@ -1113,10 +1112,10 @@ win.document.write(`
               <td>3004XXXX</td> <!-- Update with actual HSN -->
               <td>₹${parseFloat(item.price).toLocaleString('en-IN')}</td>
               <td>${item.qty}</td>
-              <td>${item.gstRate}</td>
+              <td>${item.gst}%</td>
               <td>₹${parseFloat(item.subtotal).toLocaleString('en-IN')}</td>
-              <td>₹${item.sgst}</td>
-              <td>₹${item.cgst}</td>
+              <td>₹${(item.sgst)/100}</td>
+              <td>₹${(item.cgst)/100}</td>
               <td>₹${item.total}</td>
             </tr>
           `).join('')}
@@ -1260,11 +1259,29 @@ win.document.write(`
               />
               <input
                 type="text"
-                placeholder="Phone Number"
+                placeholder="Customer Address"
+                className="border rounded-lg px-3 py-2 w-full"
+                value={customer.address}
+                onChange={(e) =>
+                  setCustomer({ ...customer, address: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Customer Phone Number"
                 className="border rounded-lg px-3 py-2 w-full"
                 value={customer.phone}
                 onChange={(e) =>
                   setCustomer({ ...customer, phone: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Customer Email Address"
+                className="border rounded-lg px-3 py-2 w-full"
+                value={customer.email}
+                onChange={(e) =>
+                  setCustomer({ ...customer, email: e.target.value })
                 }
               />
             </div>
@@ -1352,6 +1369,7 @@ win.document.write(`
                     <tr className="bg-gray-200">
                       <th className="p-2 border">Product</th>
                       <th className="p-2 border">Batch</th>
+                      <th className="p-2 border">HSN</th>
                       <th className="p-2 border">Qty</th>
                       <th className="p-2 border">Price</th>
                       <th className="p-2 border">GST</th>
@@ -1366,6 +1384,7 @@ win.document.write(`
                       <tr key={`${i._id}-${i.batchNumber}`}>
                         <td className="p-2 border">{i.name}</td>
                         <td className="p-2 border">{i.batchNumber}</td>
+                        <td className="p-2 border">{i.hsn || "N/A"}</td>
                         <td className="p-2 border">
                           <input
                             type="number"
@@ -1471,7 +1490,7 @@ win.document.write(`
                   </div>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>{b.customerName || "No Name"}, {b.customerPhone || "No Phone Number"}</span>
+                  <span>Customer Name: {b.customerName || "No Name"}<br/> Customer Address: {b.customerAddress || "Not Available"}<br/> Customer Phone Number: {b.customerPhone || "Not Available"}<br/> Customer E-Mail Address: {b.customerEmail || "Not Available"}</span>
                   <span>{b.paymentMethod || "Cash"}</span>
                 </div>
                 <p className="text-gray-400 text-sm">
@@ -1502,13 +1521,13 @@ win.document.write(`
                                 <div className="text-xs text-gray-500 font-normal">#{item.batchNumber}</div>
                               )}
                             </td>
-                            <td className="p-1.5 text-center text-xs">3004XXXX</td>{/*Need to be changes*/}
+                            <td className="p-1.5 text-center text-xs">{item.hsn || "N/A"}</td>
                             <td className="p-1.5 text-center text-xs">₹{item.price.toFixed(0)}</td>
                             <td className="p-1.5 text-center text-xs">{item.qty}</td>
                             <td className="p-1.5 text-center text-xs">{item.gst}%</td>
                             <td className="p-1.5 text-center text-xs">₹{(item.price*item.qty).toFixed(2)}</td>
-                            <td className="p-1.5 text-center text-xs">₹{((item.price*item.qty)*((item.gst)/2)).toFixed(2)}</td>
-                            <td className="p-1.5 text-center text-xs">₹{((item.price*item.qty)*((item.gst)/2)).toFixed(2)}</td>
+                            <td className="p-1.5 text-center text-xs">₹{((item.price*item.qty)*((item.gst/100)/2)).toFixed(2)}</td>
+                            <td className="p-1.5 text-center text-xs">₹{((item.price*item.qty)*((item.gst/100)/2)).toFixed(2)}</td>
                             <td className="p-1.5 text-right font-medium text-xs">₹{((item.price*((1+item.gst/100)))*item.qty).toFixed(2)}</td>
                           </tr>
                         ))}
