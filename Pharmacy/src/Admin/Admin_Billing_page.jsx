@@ -271,8 +271,8 @@ export default function Admin_Billing_Page() {
     // Calculate accurate totals from items
     const itemsWithTaxes = bill.items.map(item => {
       const itemSubtotal = item.price * item.qty;
-      const cgst = itemSubtotal * (item.gst/2)
-      const sgst = itemSubtotal * (item.gst/2)
+      const cgst = itemSubtotal * (item.gst/2/100)
+      const sgst = itemSubtotal * (item.gst/2/100)
       const gst = item.gst
       
       return {
@@ -325,8 +325,8 @@ export default function Admin_Billing_Page() {
         discount: bill.discount || 0,
         discountAmount: ((grandSubtotal * (bill.discount || 0)) / 100).toFixed(2),
         taxableAmount: (grandSubtotal - ((grandSubtotal * (bill.discount || 0)) / 100)).toFixed(2),
-        cgstTotal: ((totalGst / 2)/100).toFixed(2),
-        sgstTotal: ((totalGst / 2)/100).toFixed(2),
+        cgstTotal: (totalGst / 2).toFixed(2),
+        sgstTotal: (totalGst / 2).toFixed(2),
         totalGst: totalGst.toFixed(2),
         grandTotal: grandTotal.toFixed(2)
       },
@@ -360,7 +360,7 @@ export default function Admin_Billing_Page() {
         ifsc: "XXXXXXXX",
         accountType: "Current",
         bankName: "Bank Name",
-        upi: "vendharaa-upi@upi"
+        upi: "greendwarftech@uboi"
       }
     };
   };
@@ -393,6 +393,7 @@ export default function Admin_Billing_Page() {
           upiId: printData.bank.upi,
           name: printData.business.name,
           amount: Number(printData.summary.grandTotal),
+          transactionNote: `Invoice${printData.invoice.number.slice(1)}`
         })
         .generate();
       
@@ -815,8 +816,8 @@ export default function Admin_Billing_Page() {
     // Delay for image rendering
     setTimeout(() => {
       requestAnimationFrame(() => {
-        win.print();
-        win.close();
+        // win.print();
+        // win.close();
       });
     }, 100);
     
@@ -835,6 +836,7 @@ export default function Admin_Billing_Page() {
           upiId: printData.bank.upi,
           name: printData.business.name,
           amount: Number(printData.summary.grandTotal),
+          transactionNote: `Invoice${printData.invoice.number.slice(1)}`
         })
         .generate();
       
