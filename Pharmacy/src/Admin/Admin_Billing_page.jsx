@@ -1237,7 +1237,7 @@ win.document.write(`
 };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-6 flex flex-col gap-8">
+    <div className="w-full min-h-screen p-6 flex flex-col gap-8">
      
       <div className="flex flex-col md:flex-row gap-6">
        
@@ -1470,7 +1470,7 @@ win.document.write(`
             {bills.map((b) => (
               <div
                 key={b._id}
-                className="bg-white shadow rounded-xl p-4 flex flex-col gap-3 border"
+                className="bg-white shadow rounded-xl p-4 flex flex-col gap-3"
               >
                 <div className="flex justify-between items-center">
                   <p className="font-semibold text-lg">{b.invoice}</p>
