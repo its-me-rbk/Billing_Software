@@ -1,4 +1,7 @@
 
+
+
+
 import React from "react";
 import {
   LayoutGrid,
@@ -13,7 +16,7 @@ import {
 const AdminSidebar = ({ setPage, activePage }) => {
   return (
     <div className="h-screen w-64 bg-teal-700 text-white flex flex-col justify-between py-6 px-4">
-
+      
       {/* LOGO */}
       <div>
         <div
@@ -76,7 +79,6 @@ const AdminSidebar = ({ setPage, activePage }) => {
             onClick={() => setPage("admin_suppliers")}
           />
 
-          {/* ⭐ REPORTS FIXED */}
           <SidebarItem
             title="Reports"
             Icon={FileText}
@@ -84,6 +86,7 @@ const AdminSidebar = ({ setPage, activePage }) => {
             onClick={() => setPage("admin_reports")}
           />
 
+          {/* 🔴 SETTINGS */}
           <SidebarItem
             title="Settings"
             Icon={Settings}
@@ -106,7 +109,7 @@ const SidebarItem = ({ Icon, title, active, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-between px-4 py-3 cursor-pointer rounded-xl 
+      className={`flex items-center justify-between px-4 py-3 cursor-pointer rounded-xl
       ${active ? "bg-white text-teal-700 shadow" : "text-teal-100 hover:text-white"}`}
     >
       <div className="flex items-center gap-3">

@@ -1,3 +1,7 @@
+
+
+
+
 // import React, { useState, useEffect } from "react";
 
 // // Login Page
@@ -17,28 +21,28 @@
 // import CashierDashboard from "./Cashier/Cashier_dashboard";
 
 // const App = () => {
-//   // 🔹 Restore state from localStorage
+//   // 🔹 Restore state from sessionStorage (NOT localStorage)
 //   const [page, setPage] = useState(() => {
-//     return localStorage.getItem("page") || "login";
+//     return sessionStorage.getItem("page") || "login";
 //   });
 
 //   const [role, setRole] = useState(() => {
-//     return localStorage.getItem("role") || "";
+//     return sessionStorage.getItem("role") || "";
 //   });
 
-//   // 🔹 Sync page to localStorage
+//   // 🔹 Sync page to sessionStorage
 //   useEffect(() => {
-//     localStorage.setItem("page", page);
+//     sessionStorage.setItem("page", page);
 //   }, [page]);
 
-//   // 🔹 Sync role to localStorage
+//   // 🔹 Sync role to sessionStorage
 //   useEffect(() => {
-//     localStorage.setItem("role", role);
+//     sessionStorage.setItem("role", role);
 //   }, [role]);
 
 //   // 🔹 Logout handler
 //   const handleLogout = () => {
-//     localStorage.clear();
+//     sessionStorage.clear();
 //     setPage("login");
 //     setRole("");
 //   };
@@ -149,32 +153,34 @@ import CreateBill from "./Admin/Admin_Billing_page";
 import AdminSupplier from "./Admin/Admin_Supplier";
 import AdminReport from "./Admin/Admin_reports";
 import AdminCustomers from "./Admin/Admin_customers";
+import AdminSettings from "./Admin/Admin_Settings"; // ✅ NEW
 
 // Cashier Pages
 import CashierSidebar from "./Cashier/Cashier_nav";
 import CashierDashboard from "./Cashier/Cashier_dashboard";
 
 const App = () => {
-  // 🔹 Restore state from sessionStorage (NOT localStorage)
+  // 🔹 Restore page from sessionStorage
   const [page, setPage] = useState(() => {
     return sessionStorage.getItem("page") || "login";
   });
 
+  // 🔹 Restore role from sessionStorage
   const [role, setRole] = useState(() => {
     return sessionStorage.getItem("role") || "";
   });
 
-  // 🔹 Sync page to sessionStorage
+  // 🔹 Sync page
   useEffect(() => {
     sessionStorage.setItem("page", page);
   }, [page]);
 
-  // 🔹 Sync role to sessionStorage
+  // 🔹 Sync role
   useEffect(() => {
     sessionStorage.setItem("role", role);
   }, [role]);
 
-  // 🔹 Logout handler
+  // 🔹 Logout
   const handleLogout = () => {
     sessionStorage.clear();
     setPage("login");
@@ -187,16 +193,25 @@ const App = () => {
       switch (page) {
         case "admin_dashboard":
           return <AdminDashboard />;
+
         case "admin_products":
           return <AdminProducts setPage={setPage} />;
+
         case "admin_billing":
           return <CreateBill />;
+
         case "admin_suppliers":
           return <AdminSupplier />;
+
         case "admin_reports":
           return <AdminReport />;
+
         case "admin_customers":
           return <AdminCustomers />;
+
+        case "admin_settings": // ✅ SETTINGS PAGE
+          return <AdminSettings />;
+
         default:
           return <AdminDashboard />;
       }
@@ -216,7 +231,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen w-full">
-      {/* ---------------- LOGIN PAGE ---------------- */}
+      {/* ---------------- LOGIN ---------------- */}
       {page === "login" && (
         <div className="min-h-screen flex items-center justify-center">
           <Home setPage={setPage} setRole={setRole} />
