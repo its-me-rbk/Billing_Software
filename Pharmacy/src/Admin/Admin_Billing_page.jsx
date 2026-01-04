@@ -1,11 +1,19 @@
-
-
 import React, { useEffect, useState } from "react";
 import html2pdf from "html2pdf.js"; 
 import logo from '../assets/logo_c.png'
 
 const API_PRODUCTS = "http://localhost:5000/api/products";
 const API_BILLS = "http://localhost:5000/api/bills";
+
+// Reusable trash icon component (top-level to prevent render-time redefine)
+const TrashIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+);
 
 export default function Admin_Billing_Page() {
   const [products, setProducts] = useState([]);
@@ -24,7 +32,14 @@ export default function Admin_Billing_Page() {
 
   const [logoSrc, setLogoSrc] = useState('');
 
-  
+  const inputClass = "border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition";
+  const selectClass = "border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition bg-white";
+  const smallInputClass = "border rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition";
+  const primaryBtnClass = "bg-teal-600 text-white rounded-lg px-4 py-2 hover:bg-teal-700 transition font-medium";
+  const ghostBtnClass = "border border-gray-300 text-gray-800 rounded-lg px-3 py-1 hover:bg-gray-100 transition font-medium";
+  const subtleBtnClass = "bg-gray-700 text-white rounded-lg px-3 py-1 hover:bg-gray-800 transition font-medium";
+  const dangerBtnClass = "border border-red-200 text-red-600 rounded-lg px-3 py-1 hover:bg-red-50 transition font-medium flex items-center gap-1";
+
   useEffect(() => {
     fetchProducts();
     fetchBills();
@@ -41,7 +56,7 @@ export default function Admin_Billing_Page() {
       setLogoSrc(canvas.toDataURL('image/png'));
     };
     img.src = logo;
-  })
+  }, [])
 
   const fetchProducts = async () => {
     try {
@@ -663,13 +678,13 @@ win.document.write(`
           ${printData.items.map(item => `
             <tr>
               <td>${item.name}<br/><small>#${item.batchNumber}</small></td>
-              <td>3004XXXX</td> <!-- Update with actual HSN -->
+              <td>3004XXXX</td>
               <td>₹${parseFloat(item.price).toLocaleString('en-IN')}</td>
               <td>${item.qty}</td>
               <td>${item.gst}%</td>
               <td>₹${parseFloat(item.subtotal).toLocaleString('en-IN')}</td>
-              <td>₹${(item.sgst)/100}</td>
-              <td>₹${(item.cgst)/100}</td>
+              <td>₹${parseFloat(item.sgst).toLocaleString('en-IN')}</td>
+              <td>₹${parseFloat(item.cgst).toLocaleString('en-IN')}</td>
               <td>₹${item.total}</td>
             </tr>
           `).join('')}
@@ -1109,13 +1124,13 @@ win.document.write(`
           ${printData.items.map(item => `
             <tr>
               <td>${item.name}<br/><small>#${item.batchNumber}</small></td>
-              <td>3004XXXX</td> <!-- Update with actual HSN -->
+              <td>3004XXXX</td>
               <td>₹${parseFloat(item.price).toLocaleString('en-IN')}</td>
               <td>${item.qty}</td>
               <td>${item.gst}%</td>
               <td>₹${parseFloat(item.subtotal).toLocaleString('en-IN')}</td>
-              <td>₹${(item.sgst)/100}</td>
-              <td>₹${(item.cgst)/100}</td>
+              <td>₹${parseFloat(item.sgst).toLocaleString('en-IN')}</td>
+              <td>₹${parseFloat(item.cgst).toLocaleString('en-IN')}</td>
               <td>₹${item.total}</td>
             </tr>
           `).join('')}
@@ -1251,7 +1266,7 @@ win.document.write(`
               <input
                 type="text"
                 placeholder="Customer Name"
-                className="border rounded-lg px-3 py-2 w-full"
+                className={inputClass}
                 value={customer.name}
                 onChange={(e) =>
                   setCustomer({ ...customer, name: e.target.value })
@@ -1260,7 +1275,7 @@ win.document.write(`
               <input
                 type="text"
                 placeholder="Customer Address"
-                className="border rounded-lg px-3 py-2 w-full"
+                className={inputClass}
                 value={customer.address}
                 onChange={(e) =>
                   setCustomer({ ...customer, address: e.target.value })
@@ -1269,7 +1284,7 @@ win.document.write(`
               <input
                 type="text"
                 placeholder="Customer Phone Number"
-                className="border rounded-lg px-3 py-2 w-full"
+                className={inputClass}
                 value={customer.phone}
                 onChange={(e) =>
                   setCustomer({ ...customer, phone: e.target.value })
@@ -1278,7 +1293,7 @@ win.document.write(`
               <input
                 type="text"
                 placeholder="Customer Email Address"
-                className="border rounded-lg px-3 py-2 w-full"
+                className={inputClass}
                 value={customer.email}
                 onChange={(e) =>
                   setCustomer({ ...customer, email: e.target.value })
@@ -1287,20 +1302,15 @@ win.document.write(`
             </div>
           </div>
 
-          {/* SEARCH PRODUCT */}
           <div className="bg-white shadow rounded-xl p-5">
             <h2 className="text-lg font-semibold mb-4">Add Products</h2>
-
-            {/* Product Search Input */}
             <input
               type="text"
               placeholder="Search products…"
-              className="border rounded-lg px-3 py-2 w-full mb-4"
+              className={inputClass + " mb-4"}
               value={productSearch}
               onChange={(e) => setProductSearch(e.target.value)}
             />
-
-            {/* Suggestions */}
             {productSearch && (
               <div className="border rounded-xl p-2 max-h-40 overflow-y-auto mb-4">
                 {filteredProducts.length === 0 ? (
@@ -1318,7 +1328,7 @@ win.document.write(`
                           loadBatches(p.name);
                           setProductSearch(p.name);
                         }}
-                        className="px-3 py-1 bg-teal-500 text-white rounded-lg"
+                        className={ghostBtnClass}
                       >
                         Select
                       </button>
@@ -1328,11 +1338,10 @@ win.document.write(`
               </div>
             )}
 
-            {/* Batch & Qty Selection */}
             {selectedProduct && (
               <div className="flex gap-4">
                 <select
-                  className="p-2 border flex-1"
+                  className={selectClass}
                   value={selectedBatch}
                   onChange={(e) => setSelectedBatch(e.target.value)}
                 >
@@ -1347,23 +1356,22 @@ win.document.write(`
                 <input
                   type="number"
                   placeholder="Qty"
-                  className="p-2 border w-24"
+                  className={`${smallInputClass} w-24`}
                   value={qty}
                   onChange={(e) => setQty(e.target.value)}
                 />
 
                 <button
                   onClick={addItem}
-                  className="bg-blue-600 text-white px-4 rounded"
+                  className={primaryBtnClass}
                 >
                   Add
                 </button>
               </div>
             )}
 
-            {/* ITEMS TABLE */}
             {items.length > 0 && (
-              <div className="overflow-x-auto mt-4">
+              <div className="overflow-x-auto mt-4 space-y-3">
                 <table className="w-full border">
                   <thead>
                     <tr className="bg-gray-200">
@@ -1376,7 +1384,7 @@ win.document.write(`
                       <th className="p-2 border">CGST</th>
                       <th className="p-2 border">SGST</th>
                       <th className="p-2 border">Total</th>
-                      <th className="p-2 border">Remove</th>
+                      <th className="p-2 border w-[120px]">Remove</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1396,17 +1404,18 @@ win.document.write(`
                             }
                           />
                         </td>
-                        <td className="p-2 border">{i.price}</td>
-                        <td className="p-2 border">{i.gst}</td>
-                        <td className="p-2 border">{i.cgst}</td>
-                        <td className="p-2 border">{i.sgst}</td>
+                        <td className="p-2 border">{`₹${Number(i.price).toFixed(2)}`}</td>
+                        <td className="p-2 border">{i.gst}%</td>
+                        <td className="p-2 border">{`₹${Number(i.cgst).toFixed(2)}`}</td>
+                        <td className="p-2 border">{`₹${Number(i.sgst).toFixed(2)}`}</td>
                         <td className="p-2 border">{(i.total).toFixed(2)}</td>
-                        <td className="p-2 border">
+                        <td className="p-2 border w-[120px]">
                           <button
                             onClick={() => removeItem(i._id, i.batchNumber)}
-                            className="text-red-500"
+                            className={`${dangerBtnClass} !px-2`}
                           >
-                            ✖
+                            <TrashIcon size={14} />
+                            <span className="text-sm">Remove</span>
                           </button>
                         </td>
                       </tr>
@@ -1418,24 +1427,14 @@ win.document.write(`
           </div>
         </div>
 
-        {/* ---------------------- RIGHT SUMMARY ---------------------- */}
         <div className="md:w-1/4 bg-white shadow rounded-xl p-6 space-y-4">
           <h2 className="text-xl font-semibold">Bill Summary</h2>
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span>₹{subtotal.toFixed(2)}</span>
           </div>
-          {/* <div>
-            <label>Discount (%)</label>
-            <input
-              type="number"
-              className="border rounded-lg px-3 py-2 w-full"
-              value={discount}
-              onChange={(e) => setDiscount(Number(e.target.value))}
-            />
-          </div> */}
           <div className="flex justify-between">
-            <span>GST (18%)</span>
+            <span>GST</span>
             <span>₹{gst.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-bold text-lg">
@@ -1443,7 +1442,7 @@ win.document.write(`
             <span>₹{total.toFixed(2)}</span>
           </div>
           <select
-            className="border rounded-lg px-3 py-2 w-full"
+            className={selectClass}
             value={payment}
             onChange={(e) => setPayment(e.target.value)}
           >
@@ -1453,14 +1452,13 @@ win.document.write(`
           </select>
           <button
             onClick={handlePayment}
-            className="w-full bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-700"
+            className={`${primaryBtnClass} w-full`}
           >
             Complete Payment
           </button>
         </div>
       </div>
 
-      {/* ---------------------- RECENT BILLS ---------------------- */}
       <div className="mt-5">
         <h2 className="text-xl font-semibold mb-4">Recent Bills</h2>
         {bills.length === 0 ? (
@@ -1468,25 +1466,15 @@ win.document.write(`
         ) : (
           <div className="space-y-4">
             {bills.map((b) => (
-              <div
-                key={b._id}
-                className="bg-white shadow rounded-xl p-4 flex flex-col gap-3"
-              >
+              <div key={b._id} className="bg-white shadow rounded-xl p-4 flex flex-col gap-3">
                 <div className="flex justify-between items-center">
                   <p className="font-semibold text-lg">{b.invoice}</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => printBill(b._id)}
-                      className="px-3 py-1 bg-gray-700 text-white rounded"
-                    >
-                      Print
-                    </button>
-                    <button
-                      onClick={() => downloadBill(b._id, b.invoice)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded"
-                    >
-                      Download
-                    </button>
+                  <div className="flex items-center">
+                    <div className="flex gap-2">
+                      <button onClick={() => printBill(b._id)} className={subtleBtnClass}>Print</button>
+                      <button onClick={() => downloadBill(b._id, b.invoice)} className={primaryBtnClass}>Download</button>
+                    </div>
+                    <button className="ml-6 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-medium flex items-center gap-1">Delete</button>
                   </div>
                 </div>
                 <div className="flex justify-between text-gray-600">
