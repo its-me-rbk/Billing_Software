@@ -1,16 +1,32 @@
-# React + Vite
+# Pharmacy Billing System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern web application for pharmacies to manage billing, inventory, and sales reporting through a clean dashboard interface matching the provided Figma design.
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This pharmacy billing system helps medical stores replace manual billing with digital GST-compliant invoices, medicine tracking, and daily sales insights.
 
-## React Compiler
+## Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **GST-compliant billing** with item-wise tax calculation, discounts, and totals  
+- **Product & batch management** with stock levels and expiry tracking  
+- **Customer/doctor details** captured per bill for records  
+- **Dashboard analytics** showing daily revenue, bill count, and top medicines  
+- **Print & PDF invoices** with professional pharmacy layout  
+- **Responsive design** optimized for desktop counter use
 
-## Expanding the ESLint configuration
+## User Interface
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The interface features:
+- **Dashboard** with revenue stats, recent bills, and stock alerts  
+- **Billing screen** for quick customer/product entry and invoice generation  
+- **Products screen** for medicine inventory management  
+- **Clean card-based layout** matching the Figma pharmacy design language
+
+## Target Users
+
+Small to medium pharmacies, medical stores, and chemists needing:
+- Fast checkout during peak hours  
+- GST-compliant invoice printing  
+- Basic inventory tracking  
+- Daily sales performance overview

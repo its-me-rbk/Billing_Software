@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { FiPlus, FiTrash2, FiDownload } from "react-icons/fi";
 import AddProductForm from "./Admin_Add_product_from";
@@ -67,7 +66,13 @@ export default function Admin_Products() {
 
   // Flatten batches
   const batchRows = products.flatMap(p =>
-    p.batches.map(b => ({ ...b, productName: p.name, category: p.category, manufacturer: p.manufacturer }))
+    p.batches.map(b => ({
+      ...b,
+      productId: p._id,              // add parent product id
+      productName: p.name,
+      category: p.category,
+      manufacturer: p.manufacturer
+    }))
   );
 
   const filteredRows = batchRows.filter(r => {
@@ -108,8 +113,8 @@ export default function Admin_Products() {
             (new Date(b.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
           return days > 0 && days <= 30;
         })
-        .map((b, i) => (
-          <p key={i} className="text-sm text-yellow-700">
+        .map((b) => (
+          <p key={`${p._id || p.name}-${b.batchNumber || b.expiryDate || b.price}`} className="text-sm text-yellow-700">
             <b>{p.name}</b> (Batch {b.batchNumber}) — expires on{" "}
             {new Date(b.expiryDate).toLocaleDateString()}
           </p>
@@ -145,6 +150,7 @@ export default function Admin_Products() {
                 <Th>Batch No.</Th>
                 <Th>Expiry Date</Th>
                 <Th>Price</Th>
+                <Th>GST</Th>
                 <Th>Stock</Th>
                 <Th>Status</Th>
                 <Th>Actions</Th>
@@ -153,20 +159,21 @@ export default function Admin_Products() {
             <tbody>
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="p-6 text-center text-gray-400">No products found.</td>
+                  <td colSpan="10" className="p-6 text-center text-gray-400">No products found.</td>
                 </tr>
               ) : filteredRows.map((r, i) => (
-                <tr key={i} className="border-b">
+                <tr key={`${r.productId || r._id}-${r.batchNumber || i}`} className="border-b">
                   <Td>{r.productName}</Td>
                   <Td>{r.category || "Unspecified"}</Td>
                   <Td>{r.manufacturer || "-"}</Td>
                   <Td>{r.batchNumber}</Td>
                   <Td>{r.expiryDate ? new Date(r.expiryDate).toLocaleDateString() : "-"}</Td>
                   <Td>₹{r.price}</Td>
+                  <Td>{r.gst}%</Td>
                   <Td>{r.quantity}</Td>
                   <Td><StatusBadge status={getBatchStatus(r)} /></Td>
                   <Td>
-                    <FiTrash2 className="cursor-pointer text-red-600" onClick={() => deleteProduct(r._id)} />
+                    <FiTrash2 className="cursor-pointer text-red-600" onClick={() => deleteProduct(r.productId)} />
                   </Td>
                 </tr>
               ))}

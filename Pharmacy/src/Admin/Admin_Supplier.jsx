@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   FiEdit,
@@ -89,7 +88,6 @@ export default function AdminSupplier() {
 
   return (
     <div className="p-8 min-h-screen">
-
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -142,8 +140,8 @@ export default function AdminSupplier() {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow border">
-        <table className="w-full text-left">
+      <div className="bg-white rounded-xl shadow border overflow-x-auto">
+        <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-4">Supplier</th>
@@ -155,7 +153,7 @@ export default function AdminSupplier() {
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
                 <td colSpan="6" className="p-6 text-center">
@@ -170,7 +168,7 @@ export default function AdminSupplier() {
               </tr>
             ) : (
               filteredSuppliers.map((s) => (
-                <tr key={s._id} className="border-b hover:bg-gray-50">
+                <tr key={s._id} className="hover:bg-gray-50">
                   <td className="p-4 font-semibold">{s.name}</td>
                   <td className="p-4">{s.phone}</td>
                   <td className="p-4">{s.email || "-"}</td>
