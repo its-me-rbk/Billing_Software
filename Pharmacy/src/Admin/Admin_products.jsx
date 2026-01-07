@@ -324,9 +324,26 @@ export default function Admin_Products() {
                                 <div className="text-sm font-medium">Batch: {ab.batchNumber || '-'} — Qty: {ab.quantity}</div>
                                 <div className="text-xs text-gray-500">Expiry: {ab.expiryDate ? new Date(ab.expiryDate).toLocaleDateString() : '-'} • Price: ₹{ab.price} • GST: {ab.gst}%</div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <StatusBadge status={getBatchStatus(ab)} />
-                              </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    title="Unarchive batch"
+                                    onClick={async () => {
+                                      if (!window.confirm('Unarchive this batch?')) return;
+                                      try {
+                                        const res = await fetch(`${API_BASE}/${p._id}/batches/${encodeURIComponent(ab.batchNumber)}/unarchive`, { method: 'PUT' });
+                                        if (!res.ok) throw new Error('Unarchive failed');
+                                        // refresh archived list and products
+                                        const arcRes = await fetch(`${API_BASE}/${p._id}/archived`);
+                                        const arcData = await arcRes.json();
+                                        if (arcRes.ok) setArchivedMap(prev => ({ ...prev, [p._id]: (arcData.data || []) }));
+                                        fetchProducts();
+                                      } catch (err) { console.error(err); alert('Failed to unarchive batch'); }
+                                    }}
+                                    className="cursor-pointer text-green-600 bg-white border rounded px-2 py-1 text-sm"
+                                  >
+                                    Unarchive
+                                  </button>
+                                </div>
                             </div>
                           ))
                         )}

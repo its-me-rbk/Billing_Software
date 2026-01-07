@@ -247,6 +247,29 @@ router.put("/:id/batches/:batchNumber/archive", async (req, res) => {
 });
 
 /**
+ * UNARCHIVE a specific batch: move from `archivedBatches` -> `batches`
+ */
+router.put("/:id/batches/:batchNumber/unarchive", async (req, res) => {
+  try {
+    const { id, batchNumber } = req.params;
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+    const idx = (product.archivedBatches || []).findIndex(b => b.batchNumber === batchNumber);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Archived batch not found' });
+
+    const [batch] = product.archivedBatches.splice(idx, 1);
+    product.batches = product.batches || [];
+    product.batches.push(batch);
+
+    await product.save();
+    res.json({ success: true, data: product });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
  * GET archived batches for a product
  */
 router.get("/:id/archived", async (req, res) => {
