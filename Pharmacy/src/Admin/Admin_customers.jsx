@@ -7,6 +7,7 @@ import {
   FiEdit2,
   FiTrash2,
   FiPlus,
+  FiMapPin
 } from "react-icons/fi";
 import { BsPerson } from "react-icons/bs";
 import { FaCrown } from "react-icons/fa";
@@ -121,7 +122,7 @@ export default function AdminCustomer() {
 
   /* ---------------- STATS ---------------- */
   const totalCustomers = customers.length;
-  const loyaltyMembers = customers.filter((c) => c.loyaltyPoints > 0).length;
+  const loyalCustomers = customers.filter((c) => (c.loyaltyPoints || 0) > 100).length;
   const withPrescriptions = customers.filter((c) => c.notes).length;
 
   return (
@@ -148,7 +149,7 @@ export default function AdminCustomer() {
       {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <StatCard title="Total Customers" value={totalCustomers} icon={<BsPerson size={22} />} />
-        <StatCard title="Loyalty Members" value={loyaltyMembers} icon={<FaCrown size={22} />} />
+        <StatCard title="Loyal Customers" value={loyalCustomers} icon={<FaCrown size={22} />} />
         <StatCard title="With Prescriptions" value={withPrescriptions} icon={<MdOutlinePlaylistAddCheck size={22} />} />
         <StatCard title="Visited This Week" value="0" icon={<AiOutlineCalendar size={22} />} />
       </div>
@@ -167,7 +168,7 @@ export default function AdminCustomer() {
       {loading ? (
         <p className="text-center text-gray-500">Loading customers...</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
           {filtered.map((c) => (
             <CustomerCard key={c._id} customer={c} onEdit={() => { setEditCustomer(c); setShowAddModal(true); }} onDelete={() => handleDeleteCustomer(c._id)} />
           ))}
@@ -201,7 +202,7 @@ const StatCard = ({ title, value, icon }) => (
 /* ---------------- CUSTOMER CARD ---------------- */
 const CustomerCard = ({ customer, onEdit, onDelete }) => {
   return (
-    <div className="bg-white shadow-lg rounded-xl p-6 relative border border-gray-100">
+    <div className="bg-white shadow-lg rounded-xl p-6 relative border border-gray-100 flex flex-col justify-between h-full">
 
       <div className="absolute top-4 right-4 flex gap-3">
         <FiEdit2 onClick={onEdit} className="cursor-pointer text-gray-600 hover:text-blue-600" />
@@ -214,16 +215,34 @@ const CustomerCard = ({ customer, onEdit, onDelete }) => {
         </div>
       </div>
 
-      <h2 className="text-lg font-semibold text-center">{customer.name}</h2>
+      <div className="flex flex-col items-center justify-center gap-2 h-16">
+        <h2 className="text-lg font-semibold text-center truncate">{customer.name}</h2>
+        <div className="h-6 flex items-center">
+          {(customer.loyaltyPoints || 0) > 100 ? (
+            <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-sm px-2 py-0.5 rounded-full">
+              <FaCrown />
+              <span>Loyal</span>
+            </span>
+          ) : (
+            <span className="inline-block w-16" />
+          )}
+        </div>
+      </div>
 
       <div className="mt-4 space-y-3 text-gray-700">
-        <div className="flex items-center gap-3">
-          <FiPhone /> <span>{customer.phone}</span>
+        <div className="flex items-center gap-3 min-h-[1.5rem]">
+          <FiPhone /> <span className="block truncate">{customer.phone}</span>
         </div>
-        <div className="flex items-center gap-3">
-          <FiMail /> <span>{customer.email || "—"}</span>
+        <div className="flex items-center gap-3 min-h-[1.5rem]">
+          <FiMail /> <span className="block truncate">{customer.email || "—"}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3 min-h-[3rem]">
+          <FiMapPin />
+          <span className="block" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'}}>
+            {customer.address || "—"}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 min-h-[1.5rem]">
           <FiCalendar />
           <span>
             Added on: {new Date(customer.createdAt).toLocaleDateString()}
@@ -247,7 +266,7 @@ const CustomerCard = ({ customer, onEdit, onDelete }) => {
       {customer.notes && (
         <div className="mt-5 bg-blue-50 text-blue-700 py-2 px-4 rounded-lg text-sm flex items-center gap-2">
           <MdOutlinePlaylistAddCheck />
-          Has prescription notes
+          Prescription Notes: {customer.notes}
         </div>
       )}
     </div>

@@ -229,6 +229,10 @@ export default function Admin_Billing_Page() {
     const batch = batches.find((b) => b.batchNumber === selectedBatch);
 
     if (!product || !batch) return alert("Select valid product and batch");
+    // Prevent adding expired batch
+    if (batch.expiryDate && new Date(batch.expiryDate).getTime() <= Date.now()) {
+      return alert("Cannot add expired batch to bill.");
+    }
     if (qty > batch.quantity) return alert("Not enough stock!");
 
     const exists = items.find(
@@ -1570,11 +1574,14 @@ export default function Admin_Billing_Page() {
                   onChange={(e) => setSelectedBatch(e.target.value)}
                 >
                   <option value="">Select Batch</option>
-                  {batches.map((b) => (
-                    <option key={b.batchNumber} value={b.batchNumber}>
-                      {b.batchNumber} — Qty: {b.quantity}
-                    </option>
-                  ))}
+                  {batches.map((b) => {
+                    const isExpired = b.expiryDate ? new Date(b.expiryDate).getTime() <= Date.now() : false;
+                    return (
+                      <option key={b.batchNumber} value={b.batchNumber} disabled={isExpired}>
+                        {b.batchNumber} — Qty: {b.quantity}{isExpired ? ' — Expired' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
 
                 <input
@@ -1698,7 +1705,22 @@ export default function Admin_Billing_Page() {
                       <button onClick={() => printBill(b._id)} className={subtleBtnClass}>Print</button>
                       <button onClick={() => downloadBill(b._id, b.invoice)} className={primaryBtnClass}>Download</button>
                     </div>
-                    <button className="ml-6 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-medium flex items-center gap-1">Delete</button>
+                    <button onClick={async () => {
+                      if (!window.confirm('Delete this bill? This will restore stock and adjust customer totals.')) return;
+                      try {
+                        const res = await fetch(`${API_BILLS}/${b._id}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data?.error || data?.message || 'Delete failed');
+                        alert(data?.message || data?.success ? 'Bill deleted' : 'Bill deleted');
+                        // Refresh lists
+                        fetchProducts();
+                        fetchBills();
+                        fetchCustomers();
+                      } catch (err) {
+                        console.error(err);
+                        alert('Failed to delete bill');
+                      }
+                    }} className="ml-6 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-medium flex items-center gap-1">Delete</button>
                   </div>
                 </div>
                 <div className="flex justify-between text-gray-600">

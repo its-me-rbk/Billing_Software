@@ -15,7 +15,10 @@ const batchSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
+    category: { type: String },
+    manufacturer: { type: String },
     batches: [batchSchema],
+    archivedBatches: { type: [batchSchema], default: [] },
   },
   { timestamps: true }
 );
