@@ -19,6 +19,7 @@ export default function AdminCustomer() {
   const [customers, setCustomers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editCustomer, setEditCustomer] = useState(null);
   const [loading, setLoading] = useState(false);
 
   /* ---------------- FETCH CUSTOMERS ---------------- */
@@ -64,6 +65,49 @@ export default function AdminCustomer() {
     } catch (error) {
       console.error("Add customer failed", error);
       alert("Failed to add customer");
+    }
+  };
+
+  /* ---------------- UPDATE CUSTOMER ---------------- */
+  const handleUpdateCustomer = async (updatedCustomer) => {
+    if (!editCustomer) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/customers/${editCustomer._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedCustomer),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || "Failed to update customer");
+        return;
+      }
+      fetchCustomers();
+      setShowAddModal(false);
+      setEditCustomer(null);
+      alert("Customer updated successfully!");
+    } catch (err) {
+      console.error("Update failed", err);
+      alert("Failed to update customer");
+    }
+  };
+
+  /* ---------------- DELETE CUSTOMER ---------------- */
+  const handleDeleteCustomer = async (id) => {
+    if (!confirm("Delete this customer? This action cannot be undone.")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/customers/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || "Failed to delete customer");
+        return;
+      }
+      fetchCustomers();
+      alert("Customer deleted");
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete customer");
     }
   };
 
@@ -125,7 +169,7 @@ export default function AdminCustomer() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {filtered.map((c) => (
-            <CustomerCard key={c._id} customer={c} />
+            <CustomerCard key={c._id} customer={c} onEdit={() => { setEditCustomer(c); setShowAddModal(true); }} onDelete={() => handleDeleteCustomer(c._id)} />
           ))}
         </div>
       )}
@@ -133,8 +177,10 @@ export default function AdminCustomer() {
       {/* MODAL */}
       {showAddModal && (
         <Admin_Add_Customer
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleAddCustomer}
+          onClose={() => { setShowAddModal(false); setEditCustomer(null); }}
+          onSubmit={editCustomer ? handleUpdateCustomer : handleAddCustomer}
+          initialData={editCustomer}
+          mode={editCustomer ? "edit" : "add"}
         />
       )}
     </div>
@@ -153,13 +199,13 @@ const StatCard = ({ title, value, icon }) => (
 );
 
 /* ---------------- CUSTOMER CARD ---------------- */
-const CustomerCard = ({ customer }) => {
+const CustomerCard = ({ customer, onEdit, onDelete }) => {
   return (
     <div className="bg-white shadow-lg rounded-xl p-6 relative border border-gray-100">
 
       <div className="absolute top-4 right-4 flex gap-3">
-        <FiEdit2 className="cursor-pointer text-gray-600 hover:text-blue-600" />
-        <FiTrash2 className="cursor-pointer text-gray-600 hover:text-red-600" />
+        <FiEdit2 onClick={onEdit} className="cursor-pointer text-gray-600 hover:text-blue-600" />
+        <FiTrash2 onClick={onDelete} className="cursor-pointer text-gray-600 hover:text-red-600" />
       </div>
 
       <div className="flex justify-center mb-4">
@@ -194,7 +240,7 @@ const CustomerCard = ({ customer }) => {
         </div>
         <div>
           <p className="text-gray-600">Total Purchases</p>
-          <p className="font-semibold">₹0</p>
+          <p className="font-semibold">₹{customer.totalPurchase}</p>
         </div>
       </div>
 

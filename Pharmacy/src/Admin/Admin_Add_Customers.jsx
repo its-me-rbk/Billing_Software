@@ -2,15 +2,17 @@
 import React, { useState } from "react";
 import { FiX } from "react-icons/fi";
 
-export default function Admin_Add_Customer({ onClose, onSubmit }) {
-  const [customer, setCustomer] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    loyaltyPoints: 0,
-    address: "",
-    notes: "",
-  });
+export default function Admin_Add_Customer({ onClose, onSubmit, initialData = null, mode = "add" }) {
+  const [customer, setCustomer] = useState(
+    initialData || {
+      name: "",
+      phone: "",
+      email: "",
+      loyaltyPoints: 0,
+      address: "",
+      notes: "",
+    }
+  );
 
   const handleChange = (e) => {
     setCustomer({ ...customer, [e.target.name]: e.target.value });
@@ -36,7 +38,7 @@ export default function Admin_Add_Customer({ onClose, onSubmit }) {
           <FiX size={22} />
         </button>
 
-        <h2 className="text-2xl font-semibold mb-5">Add New Customer</h2>
+        <h2 className="text-2xl font-semibold mb-5">{mode === "edit" ? "Edit Customer" : "Add New Customer"}</h2>
 
         <div className="grid grid-cols-2 gap-4">
           
@@ -132,7 +134,7 @@ export default function Admin_Add_Customer({ onClose, onSubmit }) {
             onClick={handleSubmit}
             className="px-5 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
-            Add Customer
+            {mode === "edit" ? "Save Changes" : "Add Customer"}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ const router = express.Router();
 
 const Bill = require("../models/Bill");
 const Product = require("../models/Product");
+const Customer = require("../models/customer");
 
 // CREATE BILL + DEDUCT STOCK
 router.post("/", async (req, res) => {
@@ -38,6 +39,20 @@ router.post("/", async (req, res) => {
 
     // Now save bill
     const bill = await Bill.create(req.body);
+
+    // If bill has an associated customerId, increment their totalPurchase
+    try {
+      const customerId = req.body.customerId || req.body.customer_id || null;
+      if (customerId) {
+        const amount = Number(bill.total) || 0;
+        if (amount > 0) {
+          await Customer.findByIdAndUpdate(customerId, { $inc: { totalPurchase: amount } });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update customer totalPurchase:', err);
+    }
+
     res.json({ success: true, bill });
 
   } catch (err) {

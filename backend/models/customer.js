@@ -36,6 +36,12 @@ const CustomerSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+
+    totalPurchase: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   {
     timestamps: true, // createdAt, updatedAt

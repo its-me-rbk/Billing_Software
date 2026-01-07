@@ -5,6 +5,8 @@ import logo from '../assets/logo_c.png'
 
 const API_PRODUCTS = "http://localhost:5000/api/products";
 const API_BILLS = "http://localhost:5000/api/bills";
+const API_GENERAL_SETTINGS = "http://localhost:5000/api/general-settings/get";
+const API_CUSTOMERS = "http://localhost:5000/api/customers";
 
 const TrashIcon = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -16,6 +18,7 @@ const TrashIcon = ({ size = 16 }) => (
 );
 
 export default function Admin_Billing_Page() {
+  const [generalSettings, setGeneralSettings] = useState(null);
   const [products, setProducts] = useState([]);
   const [batches, setBatches] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -32,6 +35,12 @@ export default function Admin_Billing_Page() {
 
   const [logoSrc, setLogoSrc] = useState('');
 
+  // Customers
+  const [customers, setCustomers] = useState([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+  const [savingCustomer, setSavingCustomer] = useState(false);
+
   const inputClass = "border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition";
   const selectClass = "border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition bg-white";
   const smallInputClass = "border rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition";
@@ -43,6 +52,8 @@ export default function Admin_Billing_Page() {
   useEffect(() => {
     fetchProducts();
     fetchBills();
+    fetchGeneralSettings();
+    fetchCustomers();
   }, []);
 
   useEffect(() => {
@@ -68,6 +79,18 @@ export default function Admin_Billing_Page() {
     }
   };
 
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch(API_CUSTOMERS);
+      const data = await res.json();
+      // Handle both array and {success,data}
+      const list = Array.isArray(data) ? data : (data?.data || []);
+      setCustomers(Array.isArray(list) ? list : []);
+    } catch {
+      setCustomers([]);
+    }
+  };
+
   // ---------------------- FETCH BILLS ----------------------
   const fetchBills = async () => {
     try {
@@ -79,10 +102,115 @@ export default function Admin_Billing_Page() {
     }
   };
 
+  const fetchGeneralSettings = async () => {
+    try {
+      const res = await fetch(API_GENERAL_SETTINGS);
+      const data = await res.json();
+      setGeneralSettings(data && data.success ? data.data : null);
+    } catch {
+      setGeneralSettings(null);
+    }
+  };
+
   // ---------------------- FILTER PRODUCTS ----------------------
   const filteredProducts = products.filter((p) =>
     p.name?.toLowerCase().includes(productSearch.toLowerCase())
   );
+
+  // ---------------------- FILTER CUSTOMERS ----------------------
+  const filteredCustomers = customers.filter((c) => {
+    const q = customerSearch.trim().toLowerCase();
+    if (!q) return false;
+    return (
+      c.name?.toLowerCase().includes(q) ||
+      String(c.phone || c.mobile || "").toLowerCase().includes(q)
+    );
+  });
+
+  const selectCustomer = (c) => {
+    setSelectedCustomerId(c._id || c.id || null);
+    setCustomer({
+      name: c.name || "",
+      address: c.address || "",
+      phone: c.phone || c.mobile || "",
+      email: c.email || "",
+    });
+    setCustomerSearch(`${c.name}${c.phone ? ` (${c.phone})` : ""}`);
+  };
+
+  const clearSelectedCustomer = () => {
+    setSelectedCustomerId(null);
+    setCustomerSearch("");
+  };
+
+  const handleSaveNewCustomer = async () => {
+    try {
+      // Basic validation
+      const name = (customer.name || "").trim();
+      const phone = String(customer.phone || "").trim();
+      const address = (customer.address || "").trim();
+      const email = (customer.email || "").trim();
+
+      if (!name || !phone) {
+        alert("Please enter customer name and phone number.");
+        return;
+      }
+
+      // If a customer with same phone exists locally, prefer selecting it
+      const existingLocal = customers.find(c => String(c.phone) === phone);
+      if (existingLocal) {
+        selectCustomer(existingLocal);
+        alert("Customer with this phone already exists. Selected existing record.");
+        return;
+      }
+
+      setSavingCustomer(true);
+
+      const res = await fetch(API_CUSTOMERS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, email, address })
+      });
+
+      const data = await res.json();
+
+      if (res.status === 409) {
+        // Exists on server; try to select it locally after refreshing list
+        await fetchCustomers();
+        const match = customers.find(c => String(c.phone) === phone);
+        if (match) {
+          selectCustomer(match);
+        }
+        alert(data?.message || "Customer already exists.");
+        setSavingCustomer(false);
+        return;
+      }
+
+      if (!res.ok || !data?.success) {
+        alert(data?.message || "Failed to save customer.");
+        setSavingCustomer(false);
+        return;
+      }
+
+      const saved = data.data;
+      // Update UI selection and list
+      setSelectedCustomerId(saved._id);
+      setCustomer({
+        name: saved.name || name,
+        address: saved.address || address,
+        phone: saved.phone || phone,
+        email: saved.email || email,
+      });
+      setCustomerSearch(`${saved.name}${saved.phone ? ` (${saved.phone})` : ""}`);
+      await fetchCustomers();
+      alert("Customer saved successfully.");
+    } catch (err) {
+      console.error("Save customer error:", err);
+      alert("Unexpected error while saving customer.");
+    } finally {
+      setSavingCustomer(false);
+    }
+  };
 
   // ---------------------- LOAD BATCHES ----------------------
   const loadBatches = async (productName) => {
@@ -213,6 +341,7 @@ export default function Admin_Billing_Page() {
       customerAddress: customer.address,
       customerPhone: customer.phone,
       customerEmail: customer.email,
+      ...(selectedCustomerId ? { customerId: selectedCustomerId } : {}),
       items,
       subtotal,
       discount,
@@ -239,6 +368,7 @@ export default function Admin_Billing_Page() {
       setProductSearch("");
       fetchProducts();
       fetchBills();
+      fetchCustomers();
     } else {
       alert("Failed to save bill!");
     }
@@ -300,12 +430,12 @@ export default function Admin_Billing_Page() {
 
       // Business Details (Update these with your actual info)
       business: {
-        name: "Vendharaa Pharmaceuticals",
-        address: "Your Business Address, Dharmapuri",
-        dlNo: "ABCD19813",
-        gstin: "87239N09386F",
-        contact: "+91 94429 59826",
-        email: "vendharaapharmaceuticals@gmail.com"
+        name: generalSettings.pharmacyName,
+        address: generalSettings.address,
+        dlNo: generalSettings.licenseNumber,
+        gstin: generalSettings.gstNumber,
+        contact: generalSettings.phone,
+        email: generalSettings.email
       },
 
       // Customer Details
@@ -1312,6 +1442,41 @@ export default function Admin_Billing_Page() {
           {/* CUSTOMER */}
           <div className="bg-white shadow rounded-xl p-5">
             <h2 className="text-lg font-semibold mb-4">Customer</h2>
+            {/* Existing customer search */}
+            <div className="space-y-2 mb-4">
+              <input
+                type="text"
+                placeholder="Search existing customers by name or phone…"
+                className={inputClass}
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
+              />
+              {selectedCustomerId && (
+                <div className="flex items-center justify-between bg-teal-50 border border-teal-200 text-teal-800 px-3 py-2 rounded">
+                  <span className="text-sm">Existing customer selected</span>
+                  <button onClick={clearSelectedCustomer} className={ghostBtnClass}>Clear</button>
+                </div>
+              )}
+              {customerSearch && (
+                <div className="border rounded-xl p-2 max-h-40 overflow-y-auto">
+                  {filteredCustomers.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No matching customers</p>
+                  ) : (
+                    filteredCustomers.map((c) => (
+                      <div key={c._id || c.id}
+                           className="flex justify-between items-center py-1 border-b last:border-b-0">
+                        <div className="text-sm">
+                          <div className="font-medium">{c.name}</div>
+                          <div className="text-gray-600">{c.phone || c.mobile || "No phone"}</div>
+                          {c.address && <div className="text-gray-500 truncate max-w-[280px]">{c.address}</div>}
+                        </div>
+                        <button onClick={() => selectCustomer(c)} className={ghostBtnClass}>Use</button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
@@ -1349,6 +1514,15 @@ export default function Admin_Billing_Page() {
                   setCustomer({ ...customer, email: e.target.value })
                 }
               />
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleSaveNewCustomer}
+                disabled={savingCustomer || !(customer.name && customer.phone)}
+                className={`${primaryBtnClass} disabled:opacity-60`}
+              >
+                {savingCustomer ? "Saving..." : "Save as new customer"}
+              </button>
             </div>
           </div>
 
